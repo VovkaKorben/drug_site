@@ -1,0 +1,8 @@
+<!-- <div style=" border-bottom: 1px dashed #333;padding-bottom: 20px;">Всего препаратов: {{count}}</div> -->
+<div style="border-bottom: 1px dashed #333;margin-bottom: 20px;display: inline-block;">Всего препаратов: {{count}}</div>
+<div class="medicine_list">
+    {% for medicine in medicine_list %}
+    <a class="large" data-article="{{medicine.medicine_id}}" href="#">{{medicine.medicine_name}}</a>
+    {{c}}
+    {% endfor %}
+</div>

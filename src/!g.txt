@@ -1,0 +1,57 @@
+ <!-- <div id="container"> -->
+
+  <div id="menu">
+
+    <div class="hdr1">
+      <!--блок лого-->
+      <div class="flex_cc" style="margin:0px 20px;">
+
+        <img src="img/logo.png" width="50" height="37" alt="logo" />
+
+        <div class="merriweather-bold" style="font-size:30px;margin-left:10px;">Мозгоправ</div>
+      </div>
+      <!--блок поиска-->
+      <div class="search_cont">
+        <input type="text" class="search_input">
+        <img src="img/search.png" width="32" height="32" alt="" class="search_img" />
+      </div>
+      <!--служебные кнопки (шрифт/цвет)-->
+      <div class="flex_cc" style="margin:0px 20px;">
+        <img src="img/light.png" width="32" height="32" alt="" />
+        <img src="img/light.png" width="32" height="32" alt="" />
+        <img src="img/light.png" width="32" height="32" alt="" />
+      </div>
+    </div>
+
+    <div class="hdr2 roboto-regular">
+
+
+      {% for c in categories %}
+      {% if loop.index0 != 0 %}
+      <span class="sep">&nbsp;|&nbsp;</span>
+      {% endif %}
+
+      <a data-command="list" data-value="{{c.category_id}}" href="#">{{c.category_name}}</a>
+
+      {% endfor %}
+    </div>
+  </div>
+  <!-- <div id="debug">  </div> -->
+  <div id="content"> </div>
+  <!-- </div> -->
+
+
+
+
+
+
+  <!--нижняя строка, список типов-->
+    <div id="header_line_2" class="flex_hc">
+      {% for c in categories %}
+      {% if loop.index0 != 0 %}
+      <img class="sep" src="img/sep.png" />
+      <!-- <span class="sep">&nbsp;|&nbsp;</span> -->
+      {% endif %}
+      <a data-list="{{c.category_id}}" href="#">{{c.category_name}}</a>
+      {% endfor %}
+    </div>

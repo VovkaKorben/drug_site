@@ -1,0 +1,26 @@
+.dbg1 {
+    border: 1px dotted blue;
+}
+
+.dbg2 {
+    border: 1px dotted red;
+}
+
+.dbg3 {
+    border: 1px dotted lime;
+}
+
+#debug {
+    border: 1px dotted #00ff0040;
+    padding: 50px;
+    margin: 15px;
+}
+
+h1 {
+    /* background-color: #ff000024; */
+}
+
+p {
+    /* background-color: #4eff0024; */
+}
+

@@ -1,0 +1,36 @@
+body,
+div#cat_list {
+    background-color: #111;
+}
+
+input[ type="text"]:focus {
+    border-color: #72b7ff;
+}
+
+a:hover {
+    color: #72b7ff;
+}
+
+#header_container,
+input[ type="text"] {
+    background-color: #222222;
+}
+
+body,
+input[ type="text"] {
+    color: #ddd;
+}
+
+a {
+    color: #aaa;
+}
+
+.search_input,
+div#cat_list {
+    border-color: #dddddd;
+}
+
+div#cat_list>div:hover {
+    background-color: #222222;
+
+}

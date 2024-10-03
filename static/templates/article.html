@@ -1,0 +1,15 @@
+{% for p in article %}
+<div>
+    <div class="flex_left_center" data-medicine="{{medicine_id}}" data-paragraph="{{loop.index0}}">
+        <!-- <div> -->
+        <img class="rot90" src="img/chevron_right.png" width="32" height="32" alt=">" />
+        <!-- </div> -->
+        <h1>{{p.header}}</h1>
+    </div>
+    <div>
+        {% for t in p.text %}
+        <p>{{t}}</p>
+        {% endfor %}
+    </div>
+</div>
+{% endfor %}
