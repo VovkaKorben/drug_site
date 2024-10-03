@@ -25,7 +25,7 @@ try:
     for table_name in ["articles", "medicines", "medicine_categories"]:
         cursor = conn.execute(f"delete from {table_name}")
         conn.commit()
-
+   
     for filename in file_names:
 
         with open(os.path.join(articles_path, filename), "r", encoding="UTF-8") as article_file:

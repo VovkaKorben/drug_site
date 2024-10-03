@@ -21,7 +21,7 @@ class db_error(Exception):
 
     pass
 
-
+ 
 def load_template(templatefilename):
     try:
         templatefilename = os.path.join(app.static_folder, "templates", templatefilename)
