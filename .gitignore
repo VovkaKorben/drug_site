@@ -1,9 +1,7 @@
-parse_articles.py
-/.venv/
-/.vscode/
-/art2/
-/src/
+
+.venv/
+.vscode/
+art2/
+src/
 /__pycache__/
-index/_MAIN_1.toc
-index/MAIN_ehrkth91t6jc1jsh.seg
-index/MAIN_WRITELOCK
+index/
