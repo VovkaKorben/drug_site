@@ -1,5 +1,5 @@
 parse_articles.py
-.venv
-.vscode
-art2
-src
+/.venv
+/.vscode
+/art2
+/src

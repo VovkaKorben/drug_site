@@ -1,10 +1,10 @@
-@charset "utf-8"; body {
+@charset "utf-8"; @import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&display=swap'); body {
     padding: 0px;
     margin: 0px;
     height: 100%;
 }
 
-body, input,a.large,div {
+body, input, a.large, div {
     font-size: 16px;
     font-family: "Merriweather", system-ui;
     font-weight: 400;
@@ -12,8 +12,8 @@ body, input,a.large,div {
 }
 
 .search_input {
-border: 2px solid;
-	width: calc(100% - 55px);
+    border: 2px solid;
+    width: calc(100% - 55px);
     height: 32px;
     padding: 5px 5px 5px 45px;
     border-radius: 4px;
@@ -22,36 +22,35 @@ border: 2px solid;
 
 a {
     text-decoration: none;
-   
 }
-.rot90{
-transform: rotate(90deg);}
+
+.rot90 {
+    transform: rotate(90deg);
+}
+
 h1 {
     font-family: "Roboto", system-ui;
     font-weight: 700;
     font-style: normal;
     /* margin-top: 42px; */
     margin-top: 5px;
-	margin-bottom: 5px;
-	cursor:pointer;
+    margin-bottom: 5px;
+    cursor: pointer;
 }
 
 p {
     font-family: "Merriweather", system-ui;
     font-weight: 400;
     font-style: normal;
-	margin-left:32px;
-	
+    margin-left: 32px;
 }
 
-a:hover,input[ type="text"]:focus {
-    /* transition: all .25s ease; */
+a:hover, input[ type="text"]:focus {
+    transition: all .25s ease;
 }
 
-.medicine_list >a {
+.medicine_list>a {
     padding: 5px;
-    /* margin:  25px; */
-    /* border: 1px dotted red; */
 }
 
 .sep {
@@ -59,32 +58,25 @@ a:hover,input[ type="text"]:focus {
 }
 
 #content {
-    /* border: 1px dotted #bdd50f; */
-    /* overflow-y: scroll; */
-    margin:0px auto;
-    padding-top:80px;
+    margin: 0px auto;
+    padding-top: 80px;
 }
 
 #header_container {
-    /* border: 1px dotted lime; */
     width: 100%;
-    /* background-color: #33333352; */
     position: fixed;
     top: 0px;
-    height:70px;
-	z-index:5555;
+    height: 70px;
+    z-index: 5555;
 }
 
-#header_line_1 > div {
+#header_line_1>div {
     margin: 8px 12px;
-}
-#content, #header_line_1 {
-    width: 60%;
 }
 
 .search_cont {
     position: relative;
-    width: 100% ;
+    width: 100%;
 }
 
 .search_img {
@@ -110,66 +102,86 @@ a:hover,input[ type="text"]:focus {
     align-content: stretch;
     align-items: center;
 }
-.flex_left_center
-{
-	display: flex;
-	flex-direction: row;
-	flex-wrap: nowrap;
-	justify-content: flex-start;
-	align-items: center;
-	align-content: stretch;
-}
-.flex_center_center
 
-{
-	display: flex;
-	flex-direction: row;
-	flex-wrap: nowrap;
-	justify-content: center;
-	align-items: center;
-	align-content: stretch;
+.flex_left_center {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: center;
+    align-content: stretch;
 }
 
-img.sep
-{
-	width:1px;
-	height:80%;
-	margin:0px 5px;
-}
-img#theme,div#cat_cont
-{
-cursor:pointer;
-}
-div#cat_cont{
-	position:relative;
+.flex_center_center {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: center;
+    align-content: stretch;
 }
 
-div#cat_list
-{
-display:none;
-	border:2px solid;
-	border-radius:5px;
-	position:absolute;
-	right:0px;
-	top:35px;z-index:9999;
-	
-
-
-
-	/* display: flex; */
-	flex-direction: column;
-	flex-wrap: nowrap;
-	justify-content: flex-start;
-	align-items: stretch;
-	align-content: stretch;
-
-	
+img.sep {
+    width: 1px;
+    height: 80%;
+    margin: 0px 5px;
 }
+
+img#theme, div#cat_cont {
+    cursor: pointer;
+}
+
+div#cat_cont {
+    position: relative;
+}
+
+div#cat_list {
+    display: none;
+    border: 2px solid;
+    border-radius: 5px;
+    position: absolute;
+    right: 0px;
+    top: 35px;
+    z-index: 9999;
+    /* display: flex; */
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: stretch;
+    align-content: stretch;
+}
+
 div#cat_list>div {
-/*	border:1px dotted #00ffb8; */
- padding:9px 15px;
+    /*	border:1px dotted #00ffb8; */
+    padding: 9px 15px;
 }
-.menu_buttons > *
-{
-	padding:0px 2px;
+
+.menu_buttons>* {
+    padding: 0px 2px;
+}
+
+/*********************
+desktop
+**********************/
+@media (min-width: 1000px) {
+    #content, #header_line_1 {
+        width: 60%;
+    }
+}
+
+/*********************
+PHONE 
+**********************/
+@media (max-width: 1000px) {
+    #content, #header_line_1 {
+        width: 90%;
+    }
+    #content, #header_line_1 {
+        padding-left:5%;
+        padding-right:5%;
+    }
+    #logo_text
+    {
+        display:none;
+    }
 }

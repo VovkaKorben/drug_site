@@ -106,7 +106,8 @@ def make_raw(cursor, row):
 def db_conn():
     if "db" not in g:
         try:
-            g.db = sqlite3.connect("drugs.db")
+            dbpath = os.path.join(app.root_path, "drugs.db")
+            g.db = sqlite3.connect(dbpath)
             g.db.row_factory = make_dicts
             if debug:
                 g.db.set_trace_callback(sqlite_trace_callback)

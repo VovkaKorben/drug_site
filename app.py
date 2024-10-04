@@ -11,7 +11,7 @@ COMMAND_ARTICLE = 2
 @app.route("/")
 def main():
     categories = internal.read_db("categories_list.sql")
-    categories.insert(0, {"category_id": 0, "category_name": "полный список"})
+    # categories.insert(0, {"category_id": 0, "category_name": "полный список"})
     return render_template("main.html", categories=categories)
 
 

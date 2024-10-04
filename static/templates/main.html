@@ -11,8 +11,8 @@
 
   <link href="{{ url_for('static', filename='css/main.css') }}" rel="stylesheet" type="text/css">
   <link id="theme" href="{{ url_for('static', filename='css/dark.css') }}" rel="stylesheet" type="text/css">
-  <link href="{{ url_for('static', filename='css/fonts.css') }}" rel="stylesheet" type="text/css">
-  <link href="{{ url_for('static', filename='css/debug.css') }}" rel="stylesheet" type="text/css">
+  <!-- <link href="{{ url_for('static', filename='css/fonts.css') }}" rel="stylesheet" type="text/css"> -->
+  <!-- <link href="{{ url_for('static', filename='css/debug.css') }}" rel="stylesheet" type="text/css"> -->
 </head>
 
 <body>
@@ -22,9 +22,9 @@
     <div id="header_line_1" class="flex_hc">
 
       <!--блок лого-->
-      <div class="flex_hc">
+      <div id="logo_container" class="flex_hc">
         <img id="logo" src="img/logodark.png" width="50" height="37" alt="logo" />
-        <div class="merriweather-bold" style="font-size:30px;margin-left:10px;">Мозгоправ</div>
+        <div  id="logo_text" class="merriweather-bold" style="font-size:30px;margin-left:10px;">Мозгоправ</div>
       </div>
 
       <!--блок поиска-->
