@@ -5,6 +5,27 @@ from pathlib import Path
 from whoosh.fields import Schema, TEXT, ID
 from whoosh import index
 from whoosh.qparser import QueryParser
+from whoosh.analysis import StemmingAnalyzer
+from whoosh.index import create_in
+from whoosh.fields import Schema, TEXT, ID
+from whoosh.qparser import QueryParser
+from whoosh.analysis import RegexTokenizer, Filter
+import pymorphy2
+from whoosh import fields
+from whoosh.analysis import StemmingAnalyzer
+
+"""
+# Создаем морфологический анализатор
+morph = pymorphy2.MorphAnalyzer()
+
+
+# Класс фильтра для лемматизации
+class LemmatizerFilter(Filter):
+    def __call__(self, tokens):
+        for token in tokens:
+            token.text = morph.parse(token.text)[0].normal_form
+            yield token
+"""
 
 
 def make_dicts(cursor, row):
@@ -90,46 +111,26 @@ def put_articles(path: str, dbconn):
 def make_index(index_dir, conn):
     if not os.path.exists(index_dir):
         os.mkdir(index_dir)
+    # lemmatizer = RegexTokenizer() | LemmatizerFilter()
 
-    schema = Schema(medicine_id=ID(stored=True), paragraph_id=ID(stored=True), title=TEXT(stored=True), content=TEXT(stored=True))
-    # schema = Schema(title=TEXT(stored=True), path=ID(stored=True), content=TEXT(stored=True))
-
+    stem_ana = StemmingAnalyzer()
+    schema = Schema(id=ID(stored=True), article=TEXT(stored=True, analyzer=stem_ana))
     ix = index.create_in(index_dir, schema)
 
     writer = ix.writer()
-
-    prev_id = -1
-    started, title, content = False, "", ""
-    cur = conn.execute("select * from articles order by medicine_id, order_no")
-    while True:
-        a = cur.fetchone()
-        if a is None:
-            break
-        print(a)
-        if prev_id != a["medicine_id"]:
-            # print(f"NEW ARTICLE ({a['medicine_id']})")
-            if started:
-                # print("PUSH PREV")
-                writer.add_document(title=title, content=content, id=str(prev_id))
-                started, title, content = False, "", ""
-            prev_id = a["medicine_id"]
-
-        if a["is_header"]:
-            if started:
-                # print("PUSH PREV")
-                writer.add_document(title=title, content=content, id=str(prev_id))
-                started, title, content = False, "", ""
-            # print("SET HEADER")
-            started, title = True, a["article_text"]
-        else:
-            # print("ADD PARA")
-            started = True
-            content += a["article_text"]
-    if started:
-        # print("PUSH PREV")
-        writer.add_document(title=title, content=content, id=str(prev_id))
-    writer.commit()
-    cur.close()
+    try:
+        cur = conn.execute("select * from articles")
+        try:
+            while True:
+                a = cur.fetchone()
+                if a is None:
+                    break
+                # print(a)
+                writer.add_document(id=str(a["id"]), article=a["txt"])
+        finally:
+            cur.close()
+    finally:
+        writer.commit()
 
 
 try:
@@ -138,7 +139,7 @@ try:
     current_dir = os.path.dirname(os.path.realpath(__file__))
     put_articles(os.path.join(current_dir, "articles"), conn)
     # index
-    # make_index(os.path.join(current_dir, "index"), conn)
+    make_index(os.path.join(current_dir, "index"), conn)
 
 finally:
 

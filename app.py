@@ -1,4 +1,4 @@
-from internal import app
+from internal import app, db_conn
 import internal, os, io, traceback, json
 from werkzeug.exceptions import HTTPException
 from flask import Flask, jsonify, request, session, render_template
@@ -33,13 +33,50 @@ def cmd_article(data: dict) -> dict:
 
 
 def cmd_search(data: dict) -> dict:
+    current_dir = os.path.dirname(os.path.realpath(__file__))
+    index_dir = os.path.join(current_dir, "index")
+    ix = open_dir(index_dir)
+    with ix.searcher() as searcher:
+        query = QueryParser("content", ix.schema).parse(data["params"]["value"])
+        results = searcher.search(query, terms=True)
+        for hit in results:
+
+            html = f"{html}{hit['title']}<br>"
+            # print(hit["title"])
+            # Assume "content" field is stored
+            html = f"{html}{hit.highlights('content')}<br>"
+            # print(hit.highlights("content"))
+
+    
+            for r in results:
+            print(r, r.score)
+            print("-" * 40)
+            # Was this results object created with terms=True?
+            if results.has_matched_terms():
+                # What terms matched in the results?
+                print(results.matched_terms())
+                print("-" * 40)
+
+    
+"""    
     needle = data["params"]["value"].strip().upper()
     html = ""
     if len(needle):
-        select * from articles 
+        cur = db_conn().execute("select * from articles")
+        try:
+            while True:
+                data = cur.fetchone()
+                if data is None:
+                    break
+                hash = data['txt'].upper()
+                if needle in hash
+                pass
+                # if 
+        finally:
+            cur.close()
 
     return data
-
+"""
 
 """
     # 
