@@ -5,3 +5,5 @@ art2/
 src/
 /__pycache__/
 index/
+sqlite3.log
+.gitignore
