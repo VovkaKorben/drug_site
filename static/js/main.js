@@ -1,7 +1,7 @@
 let myStorage = undefined;
 const KEY_ARTICLE = 'article';
 const KEY_THEME = 'theme';
-const DEFAULT_OPENED = [0];
+// const DEFAULT_OPENED = [0];
 // first paragraph is always opened
 const COMMAND_LIST = 0
 const COMMAND_SEARCH = 1
@@ -79,20 +79,19 @@ function update_commands(params) {
 
         });
     } else if (params.command == COMMAND_ARTICLE) {
-        $('[data-paragraph]').on('click', function () {
-            let medicine_id = $(this).data('medicine');
-            let paragraph_id = $(this).data('paragraph');
-            let article = JSON.parse(load_storage(KEY_ARTICLE, '{}'));
-            const opened_search = article[medicine_id].indexOf(paragraph_id);
+        $('[data-header]').on('click', function () {
+            let header_id = $(this).data('header');
+            let article = JSON.parse(load_storage(KEY_ARTICLE, '[]'));
+            const opened_search = article.indexOf(header_id);
 
             if (opened_search > -1) {
                 // hide
-                article[medicine_id].splice(opened_search, 1);
+                article.splice(opened_search, 1);
                 $(this).children('img').removeClass('rot90');
                 $(this).siblings('div').slideUp();
             } else {
                 // open
-                article[medicine_id].push(paragraph_id);
+                article.push(header_id);
 
                 $(this).children('img').addClass('rot90');
                 $(this).siblings('div').slideDown();
@@ -101,14 +100,10 @@ function update_commands(params) {
 
         })
 
-        let article = JSON.parse(load_storage(KEY_ARTICLE, '{}'));
-        if (!article.hasOwnProperty(params.value)) {
-            article[params.value] = DEFAULT_OPENED;
-            save_storage(KEY_ARTICLE, JSON.stringify(article));
-        }
-        $('[data-paragraph]').each(function () {
-            let paragraph_id = $(this).data('paragraph');
-            if (!article[params.value].includes(paragraph_id)) {
+        let article = JSON.parse(load_storage(KEY_ARTICLE, '[]'));
+        $('[data-header]').each(function () {
+            let header_id = $(this).data('header');
+            if (!article.includes(header_id)) {
 
                 $(this).children('img').removeClass('rot90');
                 $(this).siblings('div').hide();
@@ -126,10 +121,10 @@ function set_theme(theme) {
 }
 $(document).ready(function () {
     // categories list
-    $('img#cat_menu').on('click',function () {
+    $('img#cat_menu').on('click', function () {
         $('div#cat_list').show();
     });
-    
+
     $('[data-list]').on('click', function () {
         $('div#cat_list').hide();
         send_data({
@@ -147,8 +142,7 @@ $(document).ready(function () {
     });
 
     // debug code
-    send_data({        'command': COMMAND_LIST,        'value': 0
-    });
+    send_data({ 'command': COMMAND_SEARCH, 'value': 'симптом' });
 
     // theme 
     $('img#theme').on('click', function (params) {

@@ -24,7 +24,7 @@
       <!--блок лого-->
       <div id="logo_container" class="flex_hc">
         <img id="logo" src="img/logodark.png" width="50" height="37" alt="logo" />
-        <div  id="logo_text" class="merriweather-bold" style="font-size:30px;margin-left:10px;">Мозгоправ</div>
+        <div id="logo_text" class="merriweather-bold" style="font-size:30px;margin-left:10px;">Мозгоправ</div>
       </div>
 
       <!--блок поиска-->
@@ -41,7 +41,7 @@
           <img id="cat_menu" src="img/menu.png" width="32" height="32" alt="" />
           <div id="cat_list">
             {% for c in categories %}
-            <div data-list="{{c.category_id}}" href="#">{{c.category_name}}</div>
+            <div class="selectable" data-list="{{c.category_id}}" href="#">{{c.category_name}}</div>
             {% endfor %}
           </div>
 

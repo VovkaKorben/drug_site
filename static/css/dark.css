@@ -30,7 +30,11 @@ div#cat_list {
     border-color: #dddddd;
 }
 
-div#cat_list>div:hover {
+div.selectable:hover {
     background-color: #222222;
 
+}
+b.match
+{
+    color:lime;
 }

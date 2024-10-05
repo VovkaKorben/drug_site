@@ -11,8 +11,8 @@ import os
 from flask import Flask, jsonify, request, g
 
 
-debug = False
-# debug = True
+# debug = False
+debug = True
 app = Flask(__name__, static_url_path="", static_folder="static", template_folder="static/templates")
 
 
@@ -21,7 +21,7 @@ class db_error(Exception):
 
     pass
 
- 
+
 def load_template(templatefilename):
     try:
         templatefilename = os.path.join(app.static_folder, "templates", templatefilename)
@@ -35,7 +35,6 @@ def load_template(templatefilename):
         err_text = f"error load <b>{templatefilename}</b>:\n{traceback.format_exc()}"
         err_text = "<br />\n".join(err_text.split("\n"))
         return {"error": True, "data": err_text}
-
 
 
 def read_sql_file(sqlfilename):
@@ -65,6 +64,10 @@ def read_db(sqlfilename, params={}):  # for select sql
         try:
             sqlquery = sqlfile.read()
 
+            for k in params:
+                if type(params[k]) == list:
+                    v = ",".join([str(x) for x in params[k]])
+                    sqlquery = sqlquery.replace(f":{k}", v)
             cur = db_conn().execute(sqlquery, params)
             try:
                 data = cur.fetchall()
@@ -75,7 +78,7 @@ def read_db(sqlfilename, params={}):  # for select sql
 
     except:
 
-        raise db_error(f"Error while fetching DB\nSQL filename: {sqlfilename}\n{traceback.format_exc()}\n")
+        raise db_error(f"{'-'*60}\nError while fetching DB\nSQL filename: {sqlfilename}\n{traceback.format_exc()}\n{'-'*60}")
     return data
 
 
