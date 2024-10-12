@@ -2,42 +2,21 @@ import sqlite3
 import os
 import re
 from pathlib import Path
-import pymorphy2
-"""
-from whoosh.fields import Schema, TEXT, ID
-from whoosh import index
-from whoosh.qparser import QueryParser
-from whoosh.analysis import StemmingAnalyzer
-from whoosh.index import create_in
-from whoosh.fields import Schema, TEXT, ID
-from whoosh.qparser import QueryParser
-from whoosh.analysis import RegexTokenizer, Filter
-from whoosh import fields
-from whoosh.analysis import StemmingAnalyzer
-"""
+import lemme
+import sys
+from glob import glob
 
 
-"""
-# Создаем морфологический анализатор
-morph = pymorphy2.MorphAnalyzer()
-
-
-# Класс фильтра для лемматизации
-class LemmatizerFilter(Filter):
-    def __call__(self, tokens):
-        for token in tokens:
-            token.text = morph.parse(token.text)[0].normal_form
-            yield token
-"""
-
+# ARTICLE_DIR = "art3"
+ARTICLE_DIR = "C:\\drug_site\\articles"
 
 def make_dicts(cursor, row):
     return dict((cursor.description[idx][0], value) for idx, value in enumerate(row))
 
 
 def put_articles(path: str, conn):
-
-    file_names = [f for f in os.listdir(path)]
+    file_names = [y for x in os.walk(ARTICLE_DIR) for y in glob(os.path.join(x[0], '*.txt'))]
+    # file_names = [f for f in os.listdir(path)]
     print(f"Найдено файлов: {len(file_names)}")
 
     conn.execute(f"PRAGMA foreign_keys = false;")
@@ -89,49 +68,28 @@ def put_articles(path: str, conn):
     finally:
         conn.execute(f"PRAGMA foreign_keys = true;")
         conn.commit()
+    return id
 
 
-def make_index(index_dir, conn):
+def make_index(conn):
     
-    
-    LEVENSTAIN_TRESHOLD = 0.1
-
-    def tokenize_string(aritcle_id:int,aritcle_text:str)->dict:
-        def add_word(w:str):
-            bw = ['А','В','ТАК','КАК','ГДЕ','И','О','НЕ','ПРИ','С','ТАКЖЕ','ЖЕ','ПО','ЧТО','ПОД','НАД','БЕЗ','ВО','НА','ИЛИ']
-            if w not in bw:
-                lemma = morph.parse(w)[0].normal_form.upper()
-                r.append({'word':text[start:pos],'lemma':lemma,'start':start,'end':pos})
-                
-
-        ab = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЫЪЭЮЯ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        
-        text = text.upper()
-        text_len = len(text)
-        pos = 0
-        start = None
-        
-        r = []
-        while pos<text_len:
-            if text[pos] in ab:
-                if start is None:
-                    start = pos
+    def tokenize_article(article_id,line):
+        lemmas = lemme.tokenize_string(line)
+        # проверяем, есть ли слово в базе
+        for l in lemmas:
+            cur = conn.execute(f"select id from lemmas where lemma = '{l['lemma']}';")
+            qres = cur.fetchall()
+            if len(qres)==0: # добавляем слово
+                cur = conn.execute(f"select ifnull(max(id),-1) max_id from lemmas;")
+                qres = cur.fetchall()
+                lemma_id = qres[0]['max_id'] + 1
+                conn.execute(f"insert into lemmas (id,lemma) values ({lemma_id},'{l['lemma']}');")  
             else:
-                if start is not None:
-                    add_word( text[start:pos])
-                    start = None
-
-            pos += 1
-        # check if line ends with word
-        if start is not None:
-            add_word(text[start:text_len])
-        return r
-
-
-
-
-
-
+                lemma_id = qres[0]['id']
+            conn.execute(f"insert into lemmas_usage (lemma_id,article_id,start,len,word_index) values ({lemma_id},{article_id},{l['start']},{l['len']},{l['word_index']});")  
+            conn.commit()
+        conn.execute(f"update articles set ('word_count')=({len(lemmas)}) where id={article_id};")  
+        conn.commit()
 
 
     cur = conn.execute("select * from articles")
@@ -140,10 +98,49 @@ def make_index(index_dir, conn):
             a = cur.fetchone()
             if a is None:
                 break
-            # print(a)
-            tokenize_string(a["id"], article=a["txt"])
+            sys.stdout.write(f'\rTokenize: {a["id"]+1}')
+            sys.stdout.flush()
+            tokenize_article(a["id"], a["txt"])
     finally:
         cur.close()
+
+
+
+"""
+    cur = conn.execute("select * from articles")
+    try:
+        while True:
+            a = cur.fetchone()
+            if a is None:
+                break
+            # print(a)def tokenize_word(word:str)->str:
+            if len(lemma)>1 and len(word)>1 and word not in disallowed_words and lemma not in disallowed_words:
+        def add_word(word:str)->int:
+            lemma = tokenize_word(word)
+            
+            lemma = morph.parse(word)[0].normal_form.upper()
+            if len(lemma)>1 and len(word)>1 and word not in disallowed_words and lemma not in disallowed_words:
+                lemma = morph.parse(word)[0].normal_form.upper()
+                # проверяем, есть ли слово в базе
+                cur = conn.execute(f"select id from lemmas where lemma = '{lemma}';")
+                qres = cur.fetchall()
+                if len(qres)==0: # добавляем слово
+                    cur = conn.execute(f"select ifnull(max(id),-1) max_id from lemmas;")
+                    qres = cur.fetchall()
+                    id = qres[0]['max_id'] + 1
+                    conn.execute(f"insert into lemmas (id,lemma) values ({id},'{lemma}');")  
+                else:
+                    id = qres[0]['id']
+                conn.execute(f"insert into lemmas_usage (lemma_id,article_id,start) values ({id},{aritcle_id},{start});")  
+                conn.commit()
+"""
+        # def add_usage
+                
+                # r.append({'word':aritcle_text[start:pos],'lemma':lemma,'start':start,'end':pos})
+                
+    
+    # finally:
+    #     cur.close()
 
 
 try:
@@ -158,9 +155,10 @@ try:
 
 
     current_dir = os.path.dirname(os.path.realpath(__file__))
-    put_articles(os.path.join(current_dir, "articles"), conn)
+    count = put_articles(os.path.join(current_dir, ARTICLE_DIR), conn)
+    print(f'Records: {count}')
     # index
-    make_index(os.path.join(current_dir, "index"), conn)
+    make_index(conn)
 
 finally:
 
