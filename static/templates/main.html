@@ -29,7 +29,7 @@
 
       <!--блок поиска-->
       <div class="search_cont">
-        <input type="text" class="search_input">
+        <input type="text" class="search_input" value="">
         <img src="img/search.png" width="32" height="32" alt="" class="search_img" />
       </div>
 
@@ -41,7 +41,7 @@
           <img id="cat_menu" src="img/menu.png" width="32" height="32" alt="" />
           <div id="cat_list">
             {% for c in categories %}
-            <div class="selectable" data-list="{{c.category_id}}" href="#">{{c.category_name}}</div>
+            <div class="selectable" data-list="{{c.category_id}}">{{c.category_name}}</div>
             {% endfor %}
           </div>
 

@@ -1,3 +1,26 @@
 {% for si in search_info %}
-{{si}}            
+{{si}}<br>
+{% endfor %}
+
+{% for doc in search_result %}
+<div class='search_result_cont'>
+    <!-- <div data-article=""></div> -->
+    <div class='search_result_doc'><a data-article="{{doc.id}}" href="#">{{doc.txt}}</a></div>
+
+
+    {% for line in doc.lines %}
+    <div class='search_result_line'>
+
+        {% for elem in line %}
+        <a data-article="{{elem.id}}" href="#">{{elem.txt|safe}}</a>
+        {% if not loop.last %}&nbsp;>&nbsp;{% endif %}
+
+        {% endfor %}
+
+    </div>
+
+    {% endfor %}
+</div>
+
+
 {% endfor %}

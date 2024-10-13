@@ -185,3 +185,22 @@ PHONE
         display:none;
     }
 }
+
+.search_result_cont
+{
+    /* border:1px solid black; */
+    margin-top:10px;
+    /* padding:5px; */
+}
+.search_result_doc
+{
+    background-color:#c7c7c7;
+  
+    padding:4px; 
+}
+.search_result_line
+{
+      border-top:1px dotted #808080;
+     padding:2px 2px 2px 20px; 
+    font-size:smaller;
+}

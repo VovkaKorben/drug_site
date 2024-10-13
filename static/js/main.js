@@ -142,7 +142,7 @@ $(document).ready(function () {
     });
 
     // debug code
-    send_data({ 'command': COMMAND_SEARCH, 'value': 'симптом' });
+    send_data({ 'command': COMMAND_SEARCH, 'value': 'антидепресс' });
 
     // theme 
     $('img#theme').on('click', function (params) {

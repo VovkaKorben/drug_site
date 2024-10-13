@@ -2,7 +2,7 @@ from internal import app, db_conn
 import internal, os, io, traceback, json
 from werkzeug.exceptions import HTTPException
 from flask import Flask, jsonify, request, session, render_template
-
+from lemme import do_search,insert_markup
 COMMAND_LIST = 0
 COMMAND_SEARCH = 1
 COMMAND_ARTICLE = 2
@@ -31,8 +31,11 @@ def cmd_article(data: dict) -> dict:
 
 
 def cmd_search(data: dict) -> dict:
-    pass
-
+    sr = do_search(data['params']['value'])
+    html =  render_template("search.html",search_info = sr['search_info'], search_result = sr['search_result'],)
+    # return {'search_info':search_info,'search_result':search_result}
+    data["dom"].append({"selector": "#content", "html":html})
+    return data
     
 """    
     needle = data["params"]["value"].strip().upper()

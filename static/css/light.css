@@ -35,3 +35,29 @@ a {
 div#cat_list {
     border-color: #000;
 }
+
+
+a {
+
+  /* color: #b600fa; */
+}
+a::before
+ {
+  /* content: '['; */
+}
+a::after
+ {
+  /* content: ']'; */
+}
+
+
+.gray
+{
+ color: #666666;
+}
+
+span.search
+{
+ font-style:italic;
+  font-weight:bold;
+}
