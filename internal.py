@@ -8,7 +8,7 @@ import sqlite3
 import io
 import traceback
 import os
-from flask import Flask, jsonify, request, g
+from flask import Flask, jsonify, request, g,current_app
 
 
 # debug = False
@@ -68,7 +68,7 @@ def read_db(sqlfilename, params={}):  # for select sql
                 if type(params[k]) == list:
                     v = ",".join([str(x) for x in params[k]])
                     sqlquery = sqlquery.replace(f":{k}", v)
-            cur = db_conn().execute(sqlquery, params)
+            cur = flask_db_conn().execute(sqlquery, params)
             try:
                 data = cur.fetchall()
             finally:
@@ -104,9 +104,45 @@ def make_dicts(cursor, row):
 
 def make_raw(cursor, row):
     return row[0]
-
-
+"""
+def is_flask_app():
+    try:
+        # Проверяем, есть ли активный контекст приложения
+        return current_app is not None
+    except RuntimeError:
+        # Если возникла ошибка, значит приложение Flask не запущено
+        return False
 def db_conn():
+    if is_flask_app():
+        if "db" not in g:
+            try:
+                dbpath = os.path.join(app.root_path, "drugs.db")
+                g.db = sqlite3.connect(dbpath)
+                g.db.row_factory = make_dicts
+                if debug:
+                    g.db.set_trace_callback(sqlite_trace_callback)
+
+            except:
+                return None
+        return g.db
+    else:
+        if 'db' not in globals():
+            global db
+            try:
+                dbpath = os.path.join(app.root_path, "drugs.db")
+                db = sqlite3.connect(dbpath)
+                db.row_factory = make_dicts
+                if debug:
+                    db.set_trace_callback(sqlite_trace_callback)
+
+            except:
+                return None
+        return db
+   """     
+    
+    
+
+def flask_db_conn():
     if "db" not in g:
         try:
             dbpath = os.path.join(app.root_path, "drugs.db")

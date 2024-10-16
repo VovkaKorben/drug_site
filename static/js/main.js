@@ -1,5 +1,5 @@
 let myStorage = undefined;
-const KEY_ARTICLE = 'article';
+const KEY_ARTICLE = 'HEADERS';
 const KEY_THEME = 'theme';
 // const DEFAULT_OPENED = [0];
 // first paragraph is always opened
@@ -21,7 +21,7 @@ function load_storage(key, def) {
     return p;
 }
 function parse_answer(result) {
-    if ('data' in result) {
+    if ('storage' in result) {
         for (k in result.data) {
             // console.log('data parse_answer:', k, '', result.data[k]);
             save_storage(k, result.data[k]);
@@ -45,8 +45,19 @@ function parse_answer(result) {
                     jQuery.each(item.css_remove, function (index, item) {
                         $(elem).removeClass(item);
                     });
+                if ('attr_set' in item)
+                    jQuery.each(item.attr_set, function (k, v) {
+                        // $(elem).removeClass(item);
+                        $(elem).attr(v[0], v[1]);
+                    });
             }
 
+        });
+    }
+    if ('attr' in result) {
+
+        $.each(result.attr.set, function (key, value) {
+            alert(key + ": " + value);
         });
     }
 }
@@ -69,41 +80,67 @@ function send_data(data) {
     );
 }
 function update_commands(params) {
-    if (params.command == COMMAND_LIST) {
-        $('[data-article]').on('click', function () {
+    if (params.command == COMMAND_LIST || params.command == COMMAND_SEARCH) {
 
-            send_data({
+        $('a[data-article]').off("click");
+        $('a[data-article]').on("click", function () {
+            data = {
                 'command': COMMAND_ARTICLE,
-                'value': $(this).data('article')
-            });
-
+                'value': $(this).data('article'),
+                'params': $('#content').data('lemmas')
+            };
+            send_data(data);
         });
+
+        /* 
+         $('[data-article]').on('click', function () {
+ 
+             send_data({
+                 'command': COMMAND_ARTICLE,
+                 'value': $(this).data('article')
+             });
+ 
+         });*/
     } else if (params.command == COMMAND_ARTICLE) {
+
         $('[data-header]').on('click', function () {
-            let header_id = $(this).data('header');
-            let article = JSON.parse(load_storage(KEY_ARTICLE, '[]'));
-            const opened_search = article.indexOf(header_id);
+            const header_id = $(this).data('header');
+            let headers = JSON.parse(load_storage(KEY_ARTICLE, '{}'));
+            const main_id = $('#content').data('articleid'); // get article ID
+            const opened_search = headers[main_id].indexOf(header_id);
 
             if (opened_search > -1) {
                 // hide
-                article.splice(opened_search, 1);
+                headers[main_id].splice(opened_search, 1);
                 $(this).children('img').removeClass('rot90');
                 $(this).siblings('div').slideUp();
             } else {
                 // open
-                article.push(header_id);
+                headers[main_id].push(header_id);
 
                 $(this).children('img').addClass('rot90');
                 $(this).siblings('div').slideDown();
             }
-            save_storage(KEY_ARTICLE, JSON.stringify(article));
+            save_storage(KEY_ARTICLE, JSON.stringify(headers));
 
         })
 
-        let article = JSON.parse(load_storage(KEY_ARTICLE, '[]'));
+        let main_id = $('#content').data('articleid'); // get article ID
+        let headers = JSON.parse(load_storage(KEY_ARTICLE, '{}'));
+        if (!(headers.hasOwnProperty(main_id))) { // if article not exists, let the first paragraph open
+            // если у нас нет такой статьи в хранилище, находим первый параграф и пишем его
+            let first_paragraph = $("#content > div:first-child > div:first-child");
+            if (first_paragraph.length > 0) {
+                first_paragraph_id = $(first_paragraph[0]).data('header');
+                headers[main_id] = [first_paragraph_id]
+                save_storage(KEY_ARTICLE, JSON.stringify(headers));
+            }
+        }
+
+        // пробегаем по всем номерам параграфов и закрываем их
         $('[data-header]').each(function () {
             let header_id = $(this).data('header');
-            if (!article.includes(header_id)) {
+            if (!headers[main_id].includes(header_id)) {
 
                 $(this).children('img').removeClass('rot90');
                 $(this).siblings('div').hide();
@@ -119,6 +156,18 @@ function set_theme(theme) {
     // $("link#theme").attr("href",theme ? "css/light.css":"css/dark.css");  
     //    <img id="theme" src="img/light.png" width="32" height="32" alt="" />
 }
+function update_links() {
+    $('a[data-article]').off("click");
+    $('a[data-article]').on("click", function () {
+        send_data({
+            'command': COMMAND_ARTICLE,
+            'value': $(this).data('article')
+        });
+    });
+    // .off( "click", "#theone", flash )
+
+}
+
 $(document).ready(function () {
     // categories list
     $('img#cat_menu').on('click', function () {
@@ -142,7 +191,8 @@ $(document).ready(function () {
     });
 
     // debug code
-    send_data({ 'command': COMMAND_SEARCH, 'value': 'антидепресс' });
+    send_data({ 'command': COMMAND_SEARCH, 'value': 'цирроз печени' });
+    // send_data({ 'command': COMMAND_ARTICLE, 'value': 14 });
 
     // theme 
     $('img#theme').on('click', function (params) {

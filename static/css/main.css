@@ -194,7 +194,7 @@ PHONE
 }
 .search_result_doc
 {
-    background-color:#c7c7c7;
+    /* background-color:#c7c7c7; */
   
     padding:4px; 
 }
@@ -203,4 +203,11 @@ PHONE
       border-top:1px dotted #808080;
      padding:2px 2px 2px 20px; 
     font-size:smaller;
+}
+
+span.search
+{
+ /* font-style:italic;  font-weight:bold; */
+    padding:3px;
+    /* margin:12px; */
 }

@@ -1,14 +1,14 @@
-{% for h in article %}
+{% for h in articles %}
 <div>
     <div data-header={{h.id}} class="flex_left_center">
         <!-- <div> -->
         <img class="rot90" src="img/chevron_right.png" width="32" height="32" alt=">" />
         <!-- </div> -->
-        <h1>{{h.text}}</h1>
+        <h1>{{h.txt}}</h1>
     </div>
     <div>
-        {% for p in h.paragraph %}
-        <p id="{{p.id}}" data-paragraph="{{p.id}}">{{p.text}}</p>
+        {% for p in h.paragraphs %}
+        <p id="{{p.id}}" data-paragraph="{{p.id}}">{{p.txt}}</p>
         {% endfor %}
     </div>
 </div>

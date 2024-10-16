@@ -1,0 +1,1 @@
+select parent from articles where id = :id;

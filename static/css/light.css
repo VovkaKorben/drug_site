@@ -15,10 +15,13 @@ a:hover {
   color: #007bff;
 }
 
-#header_container,div#cat_list>div:hover,
-input[ type="text"] {
+span.search,
+#header_container,
+input[ type="text"],div.selectable:hover {
   background-color: #c7c7c7;
 }
+
+
 
 
 
@@ -37,27 +40,8 @@ div#cat_list {
 }
 
 
-a {
-
-  /* color: #b600fa; */
-}
-a::before
- {
-  /* content: '['; */
-}
-a::after
- {
-  /* content: ']'; */
-}
-
 
 .gray
 {
  color: #666666;
-}
-
-span.search
-{
- font-style:italic;
-  font-weight:bold;
 }

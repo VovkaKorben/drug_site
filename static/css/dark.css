@@ -10,9 +10,10 @@ input[ type="text"]:focus {
 a:hover {
     color: #72b7ff;
 }
-
+/* .search_result_doc, */
+span.search,
 #header_container,
-input[ type="text"] {
+input[ type="text"],div.selectable:hover {
     background-color: #222222;
 }
 
@@ -30,11 +31,3 @@ div#cat_list {
     border-color: #dddddd;
 }
 
-div.selectable:hover {
-    background-color: #222222;
-
-}
-b.match
-{
-    color:lime;
-}
