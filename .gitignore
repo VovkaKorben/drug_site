@@ -10,3 +10,4 @@ src/
 index/
 sqlite3.log
 .gitignore
+test.py
