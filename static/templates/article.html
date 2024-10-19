@@ -1,14 +1,14 @@
-{% for h in articles %}
+{% for header_id in tree %}
 <div>
-    <div data-header={{h.id}} class="flex_left_center">
+    <div data-header={{header_id}} class="flex_left_center">
         <!-- <div> -->
         <img class="rot90" src="img/chevron_right.png" width="32" height="32" alt=">" />
         <!-- </div> -->
-        <h1>{{h.txt}}</h1>
+        <h1>{{texts[header_id]|safe}}</h1>
     </div>
     <div>
-        {% for p in h.paragraphs %}
-        <p id="{{p.id}}" data-paragraph="{{p.id}}">{{p.txt}}</p>
+        {% for paragraph_id in tree[header_id] %}
+        <p data-paragraph="{{paragraph_id}}">{{texts[paragraph_id]|safe}}</p>
         {% endfor %}
     </div>
 </div>

@@ -1,10 +1,11 @@
-SELECT DISTINCT
-	medicines.*
+SELECT
+	a.id,
+	a.txt 
 FROM
-	medicines,
-	medicine_categories
+	medicine_categories mc,
+	articles a 
 WHERE
-	medicines.medicine_id = medicine_categories.medicine_id
-	AND ( medicine_categories.category_id = :category_id OR :category_id=0 ) 
+	mc.medicine_id = a.id 
+	AND ( mc.category_id = :category_id OR :category_id = 0 ) 
 ORDER BY
-	medicines.medicine_name
+	a.txt;

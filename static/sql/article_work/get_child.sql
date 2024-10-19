@@ -1,1 +1,1 @@
-select id,txt from articles where parent = :parent  ORDER BY id;
+select id,parent,txt from articles where parent in (:parent)  ORDER BY id;

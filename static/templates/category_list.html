@@ -1,8 +1,9 @@
 <!-- <div style=" border-bottom: 1px dashed #333;padding-bottom: 20px;">Всего препаратов: {{count}}</div> -->
-<div style="border-bottom: 1px dashed #333;margin-bottom: 20px;display: inline-block;">Всего препаратов: {{count}}</div>
-<div class="medicine_list">
-    {% for medicine in medicine_list %}
-    <a class="large" data-article="{{medicine.medicine_id}}" href="#">{{medicine.medicine_name}}</a>
-    {{c}}
+<div style="margin-bottom: 20px;display: inline-block;">
+Показаны: {{category_name.category_name}}, препаратов: {{count}}
+</div>
+<div class="medicine_list ">
+    {% for doc in docs %}
+    <a class="" data-article="{{doc.id}}" href="#">{{doc.txt}}</a>
     {% endfor %}
 </div>

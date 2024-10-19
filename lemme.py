@@ -5,8 +5,11 @@ import pymorphy3
 
 MAX_RESULTS = 7
 HTML_TAGS = ('<span class="search">', "</span>")
-WORDS_FRAMING = 2  # сколько слов влево/вправо показывается в результатах поиска
+# сколько слов влево/вправо показывается в результатах поиска
+WORDS_FRAMING = 12
 
+OPEN_TAG = 0
+CLOSE_TAG = 1
 morph = pymorphy3.MorphAnalyzer()
 
 blacklist_words = [
@@ -168,23 +171,21 @@ def levenshtein_ratio(str1, str2):
     return ratio(str1, str2)
 
 
-def insert_markup(text: str, insert_positions, markup):
+def insert_markup(text: str, insert_positions, tag_markup):
     # sort inserting positions by increasing
-    insert_positions = dict(
-        sorted(insert_positions.items(), key=lambda item: item[1][0])
-    )
+    insert_positions = sorted(insert_positions, key=lambda x: x[0])
+    
 
     add_value = 0
-
-    for pos in insert_positions:
-        ins_pos = insert_positions[pos][0] + add_value
+    for ins_data in insert_positions:
+        ins_pos = ins_data[0] + add_value
         if len(text) < ins_pos:
             break
-        text = text[:ins_pos] + markup[0] + text[ins_pos:]
-        ins_pos += len(markup[0]) + insert_positions[pos][1]
+        text = text[:ins_pos] + tag_markup[OPEN_TAG] + text[ins_pos:]
+        ins_pos += len(tag_markup[OPEN_TAG]) + ins_data[1]
         ins_pos = min(ins_pos, len(text))
-        text = text[:ins_pos] + markup[1] + text[ins_pos:]
-        add_value += len(markup[0]) + len(markup[1])
+        text = text[:ins_pos] + tag_markup[CLOSE_TAG] + text[ins_pos:]
+        add_value += len(tag_markup[OPEN_TAG]) + len(tag_markup[CLOSE_TAG])
 
     return text
 
@@ -193,7 +194,7 @@ def shortenize(id, params, texts, conn):
     params = params[id]
     texts = texts[id]
 
-    word_index = params["tokens"][params["comb"][0]][0]["word_index"]
+    word_index = params["tokens"][0][params["comb"][0]]["word_index"]
     start_word_index = word_index - WORDS_FRAMING
     end_word_index = word_index + WORDS_FRAMING
     if start_word_index < 0:
@@ -368,13 +369,13 @@ def do_search(needle: str, conn=None):
                     best_comb = comb
                     best_value = sdev
                 del number_set, sdev
-            del comb
+            # del comb
             # search_result[article_id]['dev'] = {'comb':best_comb,'value':1-(best_value/articles_cache[article_id]['word_count'])}
             s_res[article_id]["comb"] = best_comb
             s_res[article_id]["value"] = best_value
             max_mqd = max(max_mqd, best_value)
             # search_result[article_id]['t1'] =best_value/articles_cache[article_id]['word_count']
-        del best_value, best_comb
+        # del best_value, best_comb
 
         # нормализируем СКО к 0...1
 

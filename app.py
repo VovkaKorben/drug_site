@@ -8,23 +8,29 @@ from flask import (
     session,
     render_template,
 )
-from lemme import do_search, insert_markup
+from lemme import do_search, insert_markup, HTML_TAGS
 
 # from typing_extensions import Literal
 COMMAND_LIST = 0
 COMMAND_SEARCH = 1
 COMMAND_ARTICLE = 2
+KEY_ARTICLE = "HEADERS"
 
 
 def cmd_list(data: dict) -> dict:
+    category_name = internal.read_db(
+        "category_name.sql",
+        {"category_id": data["params"]["value"]},
+    )[0]
     medicine_list = internal.read_db(
         "list_by_catID.sql",
         {"category_id": data["params"]["value"]},
     )
     html = render_template(
         "category_list.html",
+        category_name=category_name,
         count=len(medicine_list),
-        medicine_list=medicine_list,
+        docs=medicine_list,
     )
     data["dom"].append(
         {
@@ -39,45 +45,80 @@ def cmd_list(data: dict) -> dict:
 
 
 def cmd_article(data: dict, input_data) -> dict:
-    print(data)
+    # print(data)
+    # наличие input_data['params'] означает что мы пришли из поиска
+    # подсвечиваем леммы
+    # также передаем в ответе номер артикля, который нам нужно открыть
 
     # находим родительский артикль
-    main_id = [data["params"]["value"]]
+    path = [data["params"]["value"]]
     while True:
-        tmp = internal.read_db("article_work/get_parent.sql", {"id": main_id})
+        tmp = internal.read_db("article_work/get_parent.sql", {"id": path[-1]})
         if len(tmp) == 0:
             break
         tmp = tmp[0]["parent"]
         if tmp is None:
             break
-        main_id = tmp
+        path.append(tmp)
 
-    # теперь в ID у нас родительский, читаем всю статью
-    articles = []
-
-    headers = internal.read_db(
-        "article_work/get_child.sql", {"parent": main_id}
-    )
-    for h in headers:
-        h["paragraphs"] = []
-        paragraphs = internal.read_db(
-            "article_work/get_child.sql",
-            {"parent": h["id"]},
+    # если заголовок или параграф
+    # то открываем в бразуере этот заголовок
+    if len(path) >= 2:
+        data["storage"].append(
+            {"key": KEY_ARTICLE, "value": {path[-1]: [path[-2]]}, "action": 0}
         )
-        for p in paragraphs:
-            h["paragraphs"].append(p)
-        articles.append(h)
+        data["params"]["scroll"] = path[-2]
+
+    # теперь в path[-1] у нас родительский ID, читаем всю статью
+    headers = internal.read_db(
+        "article_work/get_child.sql",
+        {
+            "parent": [
+                path[-1],
+            ]
+        },
+    )
+
+    texts, tree = (
+        {},
+        {},
+    )  # в texts у нас чистые тексты, в tree соответсвие параграфам заголовков
+    for h in headers:
+        texts[h["id"]] = h["txt"]
+        tree[h["id"]] = []
+
+    paragraphs = internal.read_db(
+        "article_work/get_child.sql", {"parent": list(tree)}
+    )
+    for p in paragraphs:
+        texts[p["id"]] = p["txt"]
+        tree[p["parent"]].append(p["id"])
+
+    if "params" in input_data:  # находим все использования лемм
+        used_lemmas = internal.read_db(
+            "article_work/get_used_lemmas.sql",
+            {"articles_list": list(texts), "lemmas_list": input_data["params"]},
+        )
+        used_articles = set(item["article_id"] for item in used_lemmas)
+        for id in used_articles:
+            markup = [
+                (x["start"], x["len"])
+                for x in used_lemmas
+                if x["article_id"] == id
+            ]
+            texts[id] = insert_markup(texts[id], markup, HTML_TAGS)
+            # print(id, texts[id])
+        pass
 
     data["dom"].append(
         {
             "selector": "#content",
-            "html": render_template("article.html", articles=articles),
+            "html": render_template("article.html", tree=tree, texts=texts),
             "attr_set": [
-                ["data-articleid", main_id],
+                ["data-articleid", path[-1]],
             ],
         },
     )
-    # data["attr"]["set"].append()
     return data
 
 
@@ -117,7 +158,7 @@ def parse_data():
     input_data = json.loads(request.get_data())
     result = {
         "dom": [],
-        "storage": {},
+        "storage": [],
         "params": {
             "command": input_data["command"],
             "value": input_data["value"],
