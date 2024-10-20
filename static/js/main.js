@@ -130,13 +130,13 @@ function update_commands(params) {
             if (opened_search > -1) {
                 // hide
                 headers[main_id].splice(opened_search, 1);
-                $(this).children('img').removeClass('rot90');
+                $(this).children('svg').removeClass('rot90');
                 $(this).siblings('div').slideUp();
             } else {
                 // open
                 headers[main_id].push(header_id);
 
-                $(this).children('img').addClass('rot90');
+                $(this).children('svg').addClass('rot90');
                 $(this).siblings('div').slideDown();
             }
             save_storage(KEY_ARTICLE, JSON.stringify(headers));
@@ -162,7 +162,7 @@ function update_commands(params) {
             let header_id = $(this).data('header');
             if (!headers[main_id].includes(header_id)) {
 
-                $(this).children('img').removeClass('rot90');
+                $(this).children('svg').removeClass('rot90');
                 $(this).siblings('div').hide();
             }
         });
@@ -215,7 +215,7 @@ $(document).ready(function () {
     $('#search_img').on('click', function () {
         send_data({
             'command': COMMAND_SEARCH,
-            'value': $(this).val()
+            'value': $('#search_input').val()
         });
     });
 

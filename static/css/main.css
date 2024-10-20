@@ -86,8 +86,12 @@ input[ type="text"]:focus {
     z-index: 5555;
 }
 
-#header_line>div {
-    margin: 8px 12px;
+
+#header_line>* {
+    margin: 0px 12px;
+}
+#menu_buttons>*{
+    margin: 0px 2px;
 }
 
 
@@ -129,13 +133,14 @@ input[ type="text"]:focus {
 }
 
 
+
 /*********************
 desktop
 **********************/
 @media (min-width: 1000px) {
 
     #content,
-    #header_line_1 {
+    #header_line {
         width: 60%;
     }
 }
@@ -146,12 +151,12 @@ PHONE
 @media (max-width: 1000px) {
 
     #content,
-    #header_line_1 {
+    #header_line {
         width: 90%;
     }
 
     #content,
-    #header_line_1 {
+    #header_line {
         padding-left: 5%;
         padding-right: 5%;
     }
@@ -203,13 +208,11 @@ span.search {
     height: 80vh;
 }
 .medicine_list {
-    display: flex;
-    flex-direction: column;
-    flex-wrap: wrap;
-    justify-content: flex-start;
-    align-items: stretch;
-    align-content: space-evenly;
-    height: 80vh;
+   display: grid;
+   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* динамические колонки */
+    grid-auto-rows: auto; /* строки будут иметь высоту на основе содержимого */
+    /* gap: 10px; */
+    /* height: 50vh; */
 }
 .medicine_list>a ,
 .categories_list >a{
@@ -231,10 +234,3 @@ span.search {
     height: 32px;
 }
 
-svg {
-    border: 1px solid red;
-}
-
-#header_container div {
-    border: 1px dotted #0629db;
-}

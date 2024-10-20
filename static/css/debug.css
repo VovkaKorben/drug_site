@@ -27,6 +27,13 @@ p {
 span.search
 {
      /* border-bottom: 2px dotted red; */
-    border: 3px dotted red;
+    /* border: 3px dotted red; */
     
+}
+#header_container div {
+    /* border: 1px dotted #0629db; */
+}
+
+svg {
+    /* border: 1px solid red; */
 }

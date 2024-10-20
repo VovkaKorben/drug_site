@@ -2,7 +2,10 @@
 <div>
     <div data-header={{header_id}} class="flex_left_center">
         <!-- <div> -->
-        <img class="rot90" src="img/chevron_right.png" width="32" height="32" alt=">" />
+        <svg class="svgimg svgbtn rot90" id="theme">
+            <use xlink:href="svg/icons.svg#chevron"></use>
+        </svg>
+        <!-- <img class="rot90" src="img/chevron_right.png" width="32" height="32" alt=">" /> -->
         <!-- </div> -->
         <h1>{{texts[header_id]|safe}}</h1>
     </div>

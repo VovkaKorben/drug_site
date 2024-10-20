@@ -22,12 +22,12 @@ def cmd_list(data: dict) -> dict:
     if cat_id >= 0:  # for category details
 
         category_name = internal.read_db(
-            "category_name.sql",
-            {"category_id": cat_id},
+            sql_filename="category_name.sql",
+            params={"category_id": cat_id},
         )[0]
         medicine_list = internal.read_db(
-            "medicine_list.sql",
-            {"category_id": cat_id},
+            sql_filename="medicine_list.sql",
+            params={"category_id": cat_id},
         )
         html = render_template(
             "medicine_list.html",
@@ -37,7 +37,7 @@ def cmd_list(data: dict) -> dict:
         )
     else:
         # for category list
-        categories_list = internal.read_db("cat_count.sql")
+        categories_list = internal.read_db(sql_filename="cat_count.sql")
         html = render_template(
             "categories_list.html",
             categories_list=categories_list,
@@ -165,8 +165,11 @@ def cmd_search(data: dict) -> dict:
 
 @app.route("/")
 def main():
-    categories = internal.read_db("categories_list.sql")
-    return render_template("main.html", categories=categories)
+    # categories = internal.read_db("categories_list.sql")
+    # return render_template("main.html", categories=categories)
+    return render_template(
+        "main.html",
+    )
 
 
 @app.route("/parse_data", methods=["POST"])
