@@ -107,15 +107,17 @@ function update_commands(params) {
             send_data(data);
         });
 
-        /* 
-         $('[data-article]').on('click', function () {
- 
-             send_data({
-                 'command': COMMAND_ARTICLE,
-                 'value': $(this).data('article')
-             });
- 
-         });*/
+        $('a[data-category]').off("click");
+        $('a[data-category]').on("click", function () {
+            data = {
+                'command': COMMAND_LIST,
+                'value': $(this).data('category')
+            };
+            
+            send_data(data);
+        });
+
+       
     } else if (params.command == COMMAND_ARTICLE) {
 
         $('[data-header]').on('click', function () {
@@ -217,10 +219,19 @@ $(document).ready(function () {
         });
     });
 
+    $('#cat_list').on('click', function () {
+        send_data({
+            'command': COMMAND_LIST,
+            'value':-1
+        });
+    });
+
+    
     // debug code
     // send_data({ 'command': COMMAND_SEARCH, 'value': 'кровь аз' });
     // send_data({        'command': COMMAND_ARTICLE,        'value': 47 ,'params':[185, 598]    });
     // send_data({ 'command': COMMAND_LIST, 'value': 0 });
+    send_data({ 'command': COMMAND_LIST, 'value': -1 }); // show all categories with count
 
     // theme 
     $('svg#theme').on('click', function (params) {

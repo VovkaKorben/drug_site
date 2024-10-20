@@ -23,7 +23,7 @@
 
       <!--блок лого-->
       <div id="logo_container" class="flex_hc">
-        <svg class="svgimg" style="width: 64px;height:46px;">
+        <svg class="svgimg" style="width: 100px;height:80px;">
           <use xlink:href="svg/icons.svg#logo"></use>
         </svg>
 
@@ -34,7 +34,7 @@
       <div id="search_cont">
         <input type="text" id="search_input" value="dfdsfdsfs fsdfsd fsd sdgsdgs dsfgsg sgsdgsdds dgsdgs sdfgsdgsdgsdgsd">
 
-        <svg class="svgimg svghover svgbtn" id="search_img" >
+        <svg class="svgimg svghover svgbtn" id="search_img">
           <use xlink:href="svg/icons.svg#search"></use>
         </svg>
       </div>
@@ -45,21 +45,11 @@
         <svg class="svgimg svghover svgbtn" id="theme">
           <use xlink:href="svg/icons.svg#dark"></use>
         </svg>
+        <svg class="svgimg svghover svgbtn" id="cat_list">
+          <use xlink:href="svg/icons.svg#menu"></use>
+        </svg>
 
 
-        <div id="cat_cont">
-          
-          <svg class="svgimg svghover svgbtn">
-            <use xlink:href="svg/icons.svg#menu"></use>
-          </svg>
-
-          <div id="cat_list">
-            {% for c in categories %}
-            <div class="selectable" data-list="{{c.category_id}}">{{c.category_name}}</div>
-            {% endfor %}
-          </div>
-
-        </div>
       </div>
 
     </div>

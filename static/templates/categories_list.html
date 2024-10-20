@@ -1,0 +1,9 @@
+<!-- <div style=" border-bottom: 1px dashed #333;padding-bottom: 20px;">Всего препаратов: {{count}}</div> -->
+<div style="margin-bottom: 20px;display: inline-block;">
+    Список категорий:
+</div>
+<div class="categories_list ">
+{% for c in categories_list %}
+<a data-category="{{c.category_id}}" href="#">{{c.category_name}} (препаратов: {{c.ccnt}})</a>
+{% endfor %}
+<!-- </div> -->

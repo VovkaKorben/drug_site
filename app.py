@@ -18,20 +18,30 @@ KEY_ARTICLE = "HEADERS"
 
 
 def cmd_list(data: dict) -> dict:
-    category_name = internal.read_db(
-        "category_name.sql",
-        {"category_id": data["params"]["value"]},
-    )[0]
-    medicine_list = internal.read_db(
-        "list_by_catID.sql",
-        {"category_id": data["params"]["value"]},
-    )
-    html = render_template(
-        "category_list.html",
-        category_name=category_name,
-        count=len(medicine_list),
-        docs=medicine_list,
-    )
+    cat_id = data["params"]["value"]
+    if cat_id >= 0:  # for category details
+
+        category_name = internal.read_db(
+            "category_name.sql",
+            {"category_id": cat_id},
+        )[0]
+        medicine_list = internal.read_db(
+            "medicine_list.sql",
+            {"category_id": cat_id},
+        )
+        html = render_template(
+            "medicine_list.html",
+            category_name=category_name,
+            count=len(medicine_list),
+            docs=medicine_list,
+        )
+    else:
+        # for category list
+        categories_list = internal.read_db("cat_count.sql")
+        html = render_template(
+            "categories_list.html",
+            categories_list=categories_list,
+        )
     data["dom"].append(
         {
             "selector": "#content",
@@ -101,7 +111,10 @@ def cmd_article(data: dict, input_data) -> dict:
     if "params" in input_data:  # находим все использования лемм
         used_lemmas = internal.read_db(
             sql_filename="article_work/get_used_lemmas.sql",
-            params={"articles_list": list(texts), "lemmas_list": input_data["params"]},
+            params={
+                "articles_list": list(texts),
+                "lemmas_list": input_data["params"],
+            },
         )
         used_articles = set(item["article_id"] for item in used_lemmas)
         for id in used_articles:

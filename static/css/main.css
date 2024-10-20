@@ -24,7 +24,7 @@ div {
 
 #search_img {
     position: absolute;
-    right: 0px;
+    right: -10px;
     top: 7px;
 }
 
@@ -67,9 +67,6 @@ input[ type="text"]:focus {
     transition: all .25s ease;
 }
 
-.medicine_list>a {
-    padding: 5px;
-}
 
 .sep {
     color: #333;
@@ -131,37 +128,6 @@ input[ type="text"]:focus {
     align-content: stretch;
 }
 
-/* img.sep {    width: 1px;    height: 80%;    margin: 0px 5px;} */
-
-
-div#cat_cont {
-    position: relative;
-}
-
-div#cat_list {
-    display: none;
-    border: 2px solid;
-    border-radius: 5px;
-    position: absolute;
-    right: 0px;
-    top: 35px;
-    z-index: 9999;
-    /* display: flex; */
-    flex-direction: column;
-    flex-wrap: nowrap;
-    justify-content: flex-start;
-    align-items: stretch;
-    align-content: stretch;
-}
-
-div#cat_list>div {
-    /*	border:1px dotted #00ffb8; */
-    padding: 9px 15px;
-}
-
-.menu_buttons>* {
-    padding: 0px 2px;
-}
 
 /*********************
 desktop
@@ -229,7 +195,13 @@ span.search {
     padding-right: 20px;
 }
 
-
+.categories_list {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    height: 80vh;
+}
 .medicine_list {
     display: flex;
     flex-direction: column;
@@ -238,6 +210,10 @@ span.search {
     align-items: stretch;
     align-content: space-evenly;
     height: 80vh;
+}
+.medicine_list>a ,
+.categories_list >a{
+    padding: 5px;
 }
 
 
