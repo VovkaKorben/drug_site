@@ -1,21 +1,38 @@
-@charset "utf-8"; @import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&display=swap'); body {
+@charset "utf-8";
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&display=swap');
+
+body {
     padding: 0px;
     margin: 0px;
     height: 100%;
 }
 
-body, input, a.large, div {
+body,
+input,
+a.large,
+div {
     font-size: 16px;
     font-family: "Merriweather", system-ui;
     font-weight: 400;
     font-style: normal;
 }
 
-.search_input {
+#search_cont {
+    position: relative;
+    width: 100%;
+}
+
+#search_img {
+    position: absolute;
+    right: 0px;
+    top: 7px;
+}
+
+#search_input {
     border: 2px solid;
     width: calc(100% - 55px);
     height: 32px;
-    padding: 5px 5px 5px 45px;
+    padding: 5px 55px 5px 15px;
     border-radius: 4px;
     outline: none;
 }
@@ -45,7 +62,8 @@ p {
     margin-left: 32px;
 }
 
-a:hover, input[ type="text"]:focus {
+a:hover,
+input[ type="text"]:focus {
     transition: all .25s ease;
 }
 
@@ -60,7 +78,7 @@ a:hover, input[ type="text"]:focus {
 #content {
     margin: 0px auto;
     padding-top: 80px;
-    height:90%;
+    height: 90%;
 }
 
 #header_container {
@@ -71,20 +89,11 @@ a:hover, input[ type="text"]:focus {
     z-index: 5555;
 }
 
-#header_line_1>div {
+#header_line>div {
     margin: 8px 12px;
 }
 
-.search_cont {
-    position: relative;
-    width: 100%;
-}
 
-.search_img {
-    position: absolute;
-    left: 10px;
-    top: 7px;
-}
 
 .flex_vc {
     display: flex;
@@ -122,15 +131,8 @@ a:hover, input[ type="text"]:focus {
     align-content: stretch;
 }
 
-img.sep {
-    width: 1px;
-    height: 80%;
-    margin: 0px 5px;
-}
+/* img.sep {    width: 1px;    height: 80%;    margin: 0px 5px;} */
 
-img#theme, div#cat_cont {
-    cursor: pointer;
-}
 
 div#cat_cont {
     position: relative;
@@ -165,7 +167,9 @@ div#cat_list>div {
 desktop
 **********************/
 @media (min-width: 1000px) {
-    #content, #header_line_1 {
+
+    #content,
+    #header_line_1 {
         width: 60%;
     }
 }
@@ -174,63 +178,87 @@ desktop
 PHONE 
 **********************/
 @media (max-width: 1000px) {
-    #content, #header_line_1 {
+
+    #content,
+    #header_line_1 {
         width: 90%;
     }
-    #content, #header_line_1 {
-        padding-left:5%;
-        padding-right:5%;
+
+    #content,
+    #header_line_1 {
+        padding-left: 5%;
+        padding-right: 5%;
     }
-    #logo_text
-    {
-        display:none;
+
+    #logo_text {
+        display: none;
     }
 }
 
-.search_result_cont
-{
+.search_result_cont {
     /* border:1px solid black; */
-    margin-top:10px;
+    margin-top: 10px;
     /* padding:5px; */
 }
-.search_result_doc
-{
+
+.search_result_doc {
     /* background-color:#c7c7c7; */
-  
-    padding:4px; 
-}
-.search_result_line
-{
-      border-top:1px dotted #808080;
-     padding:2px 2px 2px 20px; 
-    font-size:smaller;
+
+    padding: 4px;
 }
 
-span.search
-{
- /* font-style:italic;  font-weight:bold; */
-    padding:0px 6px;
+.search_result_line {
+    border-top: 1px dotted #808080;
+    padding: 2px 2px 2px 20px;
+    font-size: smaller;
+}
+
+span.search {
+    /* font-style:italic;  font-weight:bold; */
+    padding: 0px 6px;
     /* margin:12px; */
 }
 
 
-.nw{
+.nw {
 
-    white-space:nowrap;
+    white-space: nowrap;
 }
 
-.pr {padding-right:20px;}
-
-
-.medicine_list
-
-{
-	display: flex;
-	flex-direction: column;
-	flex-wrap: wrap;
-	justify-content: flex-start;
-	align-items: stretch;
-	align-content: space-evenly;
-    height:80vh;
+.pr {
+    padding-right: 20px;
 }
 
+
+.medicine_list {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: stretch;
+    align-content: space-evenly;
+    height: 80vh;
+}
+
+
+.svghover {
+    cursor: pointer;
+}
+
+.svghover:hover {
+    transition: all 0.1s ease;
+    fill: #72b7ff;
+}
+
+.svgbtn {
+    width: 32px;
+    height: 32px;
+}
+
+svg {
+    border: 1px solid red;
+}
+
+#header_container div {
+    border: 1px dotted #0629db;
+}

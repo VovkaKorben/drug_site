@@ -1,4 +1,4 @@
-body ,
+body,
 div#cat_list {
   background-color: #d8d8d8;
 
@@ -17,7 +17,8 @@ a:hover {
 
 span.search,
 #header_container,
-input[ type="text"],div.selectable:hover {
+input[ type="text"],
+div.selectable:hover {
   background-color: #c7c7c7;
 }
 
@@ -36,12 +37,16 @@ a {
 
 .search_input,
 div#cat_list {
-    border-color: #000;
+  border-color: #000;
 }
 
 
 
-.gray
-{
- color: #666666;
+.gray {
+  color: #666666;
 }
+
+.svgimg {
+  fill: #000000;
+}
+

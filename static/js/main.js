@@ -24,17 +24,17 @@ function load_storage(key, def) {
     return p;
 }
 function parse_answer(result) {
-    if ('storage'in result) {
-        $.each(result.storage, function(i, storage_action) {
+    if ('storage' in result) {
+        $.each(result.storage, function (i, storage_action) {
             switch (storage_action.action) {
-            case STORAGE_UPDATE:
-                let s = load_storage(storage_action.key, JSON.stringify(storage_action.value));
-                s = JSON.parse(s);
-                // if (typeof x === 'object')
-                s = Object.assign({}, s, storage_action.value);
-                save_storage(storage_action.key, JSON.stringify(s));
-                // console.log(`STORAGE_UPDATE: ${s}`);
-                break;
+                case STORAGE_UPDATE:
+                    let s = load_storage(storage_action.key, JSON.stringify(storage_action.value));
+                    s = JSON.parse(s);
+                    // if (typeof x === 'object')
+                    s = Object.assign({}, s, storage_action.value);
+                    save_storage(storage_action.key, JSON.stringify(s));
+                    // console.log(`STORAGE_UPDATE: ${s}`);
+                    break;
             }
             // console.log(`storage_action: ${storage_action}`);
 
@@ -42,24 +42,24 @@ function parse_answer(result) {
 
     }
 
-    if ('dom'in result) {
+    if ('dom' in result) {
 
-        jQuery.each(result.dom, function(index, item) {
+        jQuery.each(result.dom, function (index, item) {
             // do something with `item` (or `this` is also `item` if you like)
             elem = $(item.selector);
             if (elem) {
-                if ('html'in item)
+                if ('html' in item)
                     $(elem).html(item.html);
-                if ('css_add'in item)
-                    jQuery.each(item.css_add, function(index, item) {
+                if ('css_add' in item)
+                    jQuery.each(item.css_add, function (index, item) {
                         $(elem).addClass(item);
                     });
-                if ('css_remove'in item)
-                    jQuery.each(item.css_remove, function(index, item) {
+                if ('css_remove' in item)
+                    jQuery.each(item.css_remove, function (index, item) {
                         $(elem).removeClass(item);
                     });
-                if ('attr_set'in item)
-                    jQuery.each(item.attr_set, function(k, v) {
+                if ('attr_set' in item)
+                    jQuery.each(item.attr_set, function (k, v) {
                         // $(elem).removeClass(item);
                         $(elem).attr(v[0], v[1]);
                     });
@@ -67,9 +67,9 @@ function parse_answer(result) {
 
         });
     }
-    if ('attr'in result) {
+    if ('attr' in result) {
 
-        $.each(result.attr.set, function(key, value) {
+        $.each(result.attr.set, function (key, value) {
             alert(key + ": " + value);
         });
     }
@@ -96,7 +96,7 @@ function update_commands(params) {
     if (params.command == COMMAND_LIST || params.command == COMMAND_SEARCH) {
 
         $('a[data-article]').off("click");
-        $('a[data-article]').on("click", function() {
+        $('a[data-article]').on("click", function () {
             data = {
                 'command': COMMAND_ARTICLE,
                 'value': $(this).data('article')
@@ -118,7 +118,7 @@ function update_commands(params) {
          });*/
     } else if (params.command == COMMAND_ARTICLE) {
 
-        $('[data-header]').on('click', function() {
+        $('[data-header]').on('click', function () {
             const header_id = $(this).data('header');
             let headers = JSON.parse(load_storage(KEY_ARTICLE, '{}'));
             const main_id = $('#content').data('articleid');
@@ -156,7 +156,7 @@ function update_commands(params) {
         }
 
         // пробегаем по всем номерам параграфов и закрываем их
-        $('[data-header]').each(function() {
+        $('[data-header]').each(function () {
             let header_id = $(this).data('header');
             if (!headers[main_id].includes(header_id)) {
 
@@ -164,10 +164,10 @@ function update_commands(params) {
                 $(this).siblings('div').hide();
             }
         });
-        if ('scroll'in params) {
-            let elem =  $(`[data-header=${params.scroll}]`);
+        if ('scroll' in params) {
+            let elem = $(`[data-header=${params.scroll}]`);
             console.log(elem);
-            //$('html, body').animate({    scrollTop: $(`[data-header=${params.scroll}]`).offset().top            }, 1000);
+            $('html, body').animate({ scrollTop: $(elem).offset().top }, 1000);
             // alert(params.scroll);
         }
     }
@@ -176,13 +176,17 @@ function set_theme(theme) {
     theme = parseInt(theme);
     $("link#theme").attr("href", theme ? "css/light.css" : "css/dark.css");
     $("img#theme").attr("src", theme ? "img/dark.png" : "img/light.png");
-    $("img#logo").attr("src", theme ? "img/logolight.png" : "img/logodark.png");
+
+    $('svg#theme use').attr('xlink:href', theme ? 'svg/icons.svg#dark' : 'svg/icons.svg#light');
+
+
+    // $("img#logo").attr("src", theme ? "img/logolight.png" : "img/logodark.png");
     // $("link#theme").attr("href",theme ? "css/light.css":"css/dark.css");  
     //    <img id="theme" src="img/light.png" width="32" height="32" alt="" />
 }
 function update_links() {
     $('a[data-article]').off("click");
-    $('a[data-article]').on("click", function() {
+    $('a[data-article]').on("click", function () {
         send_data({
             'command': COMMAND_ARTICLE,
             'value': $(this).data('article')
@@ -192,13 +196,13 @@ function update_links() {
 
 }
 
-$(document).ready(function() {
+$(document).ready(function () {
     // categories list
-    $('img#cat_menu').on('click', function() {
+    $('img#cat_menu').on('click', function () {
         $('div#cat_list').show();
     });
 
-    $('[data-list]').on('click', function() {
+    $('[data-list]').on('click', function () {
         $('div#cat_list').hide();
         send_data({
             'command': COMMAND_LIST,
@@ -206,8 +210,7 @@ $(document).ready(function() {
         });
     });
 
-    // update_commands();
-    $('.search_input').on('input', function() {
+    $('#search_img').on('click', function () {
         send_data({
             'command': COMMAND_SEARCH,
             'value': $(this).val()
@@ -216,11 +219,11 @@ $(document).ready(function() {
 
     // debug code
     // send_data({ 'command': COMMAND_SEARCH, 'value': 'кровь аз' });
-    send_data({        'command': COMMAND_ARTICLE,        'value': 47 ,'params':[185, 598]    });
+    // send_data({        'command': COMMAND_ARTICLE,        'value': 47 ,'params':[185, 598]    });
     // send_data({ 'command': COMMAND_LIST, 'value': 0 });
 
     // theme 
-    $('img#theme').on('click', function(params) {
+    $('svg#theme').on('click', function (params) {
         let theme = load_storage(KEY_THEME, 0);
         theme = 1 - theme;
         save_storage(KEY_THEME, theme);

@@ -19,26 +19,40 @@
   <!--верхнее меню-->
   <div id="header_container" class="flex_vc">
     <!--верхняя строка-->
-    <div id="header_line_1" class="flex_hc">
+    <div id="header_line" class="flex_hc">
 
       <!--блок лого-->
       <div id="logo_container" class="flex_hc">
-        <img id="logo" src="img/logodark.png" width="50" height="37" alt="logo" />
+        <svg class="svgimg" style="width: 64px;height:46px;">
+          <use xlink:href="svg/icons.svg#logo"></use>
+        </svg>
+
         <div id="logo_text" class="merriweather-bold" style="font-size:30px;margin-left:10px;">Мозгоправ</div>
       </div>
 
       <!--блок поиска-->
-      <div class="search_cont">
-        <input type="text" class="search_input" value="">
-        <img src="img/search.png" width="32" height="32" alt="" class="search_img" />
+      <div id="search_cont">
+        <input type="text" id="search_input" value="dfdsfdsfs fsdfsd fsd sdgsdgs dsfgsg sgsdgsdds dgsdgs sdfgsdgsdgsdgsd">
+
+        <svg class="svgimg svghover svgbtn" id="search_img" >
+          <use xlink:href="svg/icons.svg#search"></use>
+        </svg>
       </div>
 
       <!--служебные кнопки (шрифт/цвет)-->
       <div class="flex_hc menu_buttons">
 
-        <img id="theme" src="img/light.png" width="32" height="32" alt="" />
+        <svg class="svgimg svghover svgbtn" id="theme">
+          <use xlink:href="svg/icons.svg#dark"></use>
+        </svg>
+
+
         <div id="cat_cont">
-          <img id="cat_menu" src="img/menu.png" width="32" height="32" alt="" />
+          
+          <svg class="svgimg svghover svgbtn">
+            <use xlink:href="svg/icons.svg#menu"></use>
+          </svg>
+
           <div id="cat_list">
             {% for c in categories %}
             <div class="selectable" data-list="{{c.category_id}}">{{c.category_name}}</div>

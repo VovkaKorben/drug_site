@@ -66,7 +66,9 @@ def read_sql_file(sqlfilename):
         )
 
 
-def read_db(sql_filename=None, sql_query=None, params={}):  # for select sql
+def read_db(
+    sql_filename=None, sql_query=None, params={}, conn=None
+):  # for select sql
 
     try:
         if sql_filename is not None:
@@ -86,10 +88,12 @@ def read_db(sql_filename=None, sql_query=None, params={}):  # for select sql
         for k in dict(params):
             if type(params[k]) == list:
                 v = ",".join([str(x) for x in params[k]])
-                sqlquery = sqlquery.replace(f":{k}", v)
+                sql_query = sql_query.replace(f":{k}", v)
                 del params[k]
+        if conn is None:
+            conn = flask_db_conn()
 
-        cur = flask_db_conn().execute(sqlquery, params)
+        cur = conn.execute(sql_query, params)
 
         try:
             data = cur.fetchall()
@@ -97,10 +101,18 @@ def read_db(sql_filename=None, sql_query=None, params={}):  # for select sql
             cur.close()
 
     except:
-
+        for line in traceback.format_stack():
+            print(line.strip())
         raise db_error(
-            f"{'-'*60}\nError while fetching DB\nSQL filename: {sql_filename}\n{traceback.format_exc()}\n{'-'*60}"
+            f"""
+{'-'*60} Error while fetching DB {'-'*60} 
+sql_filename: {sql_filename}
+sql_query: {sql_query}
+{traceback.format_exc()}
+{'-'*80} 
+            """
         )
+        # f"{'-'*60}\nError while fetching DB\nSQL filename: {sql_filename}\n{traceback.format_exc()}\n{'-'*60}"        )
     return data
 
 

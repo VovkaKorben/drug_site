@@ -2,6 +2,7 @@ import math, re, sqlite3, itertools
 from Levenshtein import ratio
 from internal import flask_db_conn
 import pymorphy3
+from internal import read_db
 
 MAX_RESULTS = 7
 HTML_TAGS = ('<span class="search">', "</span>")
@@ -174,7 +175,6 @@ def levenshtein_ratio(str1, str2):
 def insert_markup(text: str, insert_positions, tag_markup):
     # sort inserting positions by increasing
     insert_positions = sorted(insert_positions, key=lambda x: x[0])
-    
 
     add_value = 0
     for ins_data in insert_positions:
@@ -191,6 +191,8 @@ def insert_markup(text: str, insert_positions, tag_markup):
 
 
 def shortenize(id, params, texts, conn):
+    # def get_by_key(data, key_name, value):        return next((item for item in data if item[key_name] == value), None)
+
     params = params[id]
     texts = texts[id]
 
@@ -213,33 +215,37 @@ def shortenize(id, params, texts, conn):
             used_words.append(tmp)
 
     # добавляем начало и конец, по ним будем резать фразу
-    sql_array = used_words + [start_word_index, end_word_index]
+    # sql_array = used_words + [start_word_index, end_word_index]
+
     # читаем из базы позиции слов
-    cur = conn.execute(
-        f"SELECT word_index,start,len from lemmas_usage where article_id={id} AND word_index in ({','.join(['?'] * len (sql_array))}) order by word_index;",
-        sql_array,
+    tmp = read_db(
+        sql_filename="lemme/get_word_pos.sql",
+        params={
+            "article_id": id,
+            "windexes": used_words + [start_word_index, end_word_index],
+        },
     )
-    sql_result = {}
-    while True:
-        tmp = cur.fetchone()
-        if tmp is None:
-            break
-        sql_result[tmp["word_index"]] = [tmp["start"], tmp["len"]]
+    # переделываем в удобоваримый вид
+    lemmas_usage = {}
+    for x in tmp:
+        lemmas_usage[x["word_index"]] = [x["start"], x["len"]]
 
     # срезаем нашу строку
-
-    # phrase_bounds = {k: sql_result[k] for k in phrase_bounds if k in sql_result}
-    char_start = sql_result[start_word_index][0]
-    char_end = sql_result[end_word_index][0] + sql_result[end_word_index][1]
+    char_start = lemmas_usage[start_word_index][0]
+    char_end = lemmas_usage[end_word_index][0] + lemmas_usage[end_word_index][1]
     result = texts["txt"][char_start : char_end + 1]
 
     # готовим массив со словами и вставляем ссылки
-    markup = {}
+    markup = []
 
     for tmp in list(used_words):
-        # markup
-        markup[tmp] = sql_result[tmp]
-        markup[tmp][0] -= char_start
+        x = lemmas_usage[tmp]
+        x[0] -= char_start
+        markup.append(x)
+
+        # markup[tmp] = sql_result[tmp]
+        # markup[tmp][0] -= char_start
+
     result = insert_markup(result, markup, HTML_TAGS)
 
     # добавляем трёхточие, если была обрезка

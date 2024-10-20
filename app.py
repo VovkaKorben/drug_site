@@ -53,7 +53,10 @@ def cmd_article(data: dict, input_data) -> dict:
     # находим родительский артикль
     path = [data["params"]["value"]]
     while True:
-        tmp = internal.read_db("article_work/get_parent.sql", {"id": path[-1]})
+        tmp = internal.read_db(
+            sql_filename="article_work/get_parent.sql",
+            params={"id": path[-1]},
+        )
         if len(tmp) == 0:
             break
         tmp = tmp[0]["parent"]
@@ -71,8 +74,8 @@ def cmd_article(data: dict, input_data) -> dict:
 
     # теперь в path[-1] у нас родительский ID, читаем всю статью
     headers = internal.read_db(
-        "article_work/get_child.sql",
-        {
+        sql_filename="article_work/get_child.sql",
+        params={
             "parent": [
                 path[-1],
             ]
@@ -88,7 +91,8 @@ def cmd_article(data: dict, input_data) -> dict:
         tree[h["id"]] = []
 
     paragraphs = internal.read_db(
-        "article_work/get_child.sql", {"parent": list(tree)}
+        sql_filename="article_work/get_child.sql",
+        params={"parent": list(tree)},
     )
     for p in paragraphs:
         texts[p["id"]] = p["txt"]
@@ -96,8 +100,8 @@ def cmd_article(data: dict, input_data) -> dict:
 
     if "params" in input_data:  # находим все использования лемм
         used_lemmas = internal.read_db(
-            "article_work/get_used_lemmas.sql",
-            {"articles_list": list(texts), "lemmas_list": input_data["params"]},
+            sql_filename="article_work/get_used_lemmas.sql",
+            params={"articles_list": list(texts), "lemmas_list": input_data["params"]},
         )
         used_articles = set(item["article_id"] for item in used_lemmas)
         for id in used_articles:
