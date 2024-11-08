@@ -93,6 +93,7 @@ function send_data(data) {
     );
 }
 function update_commands(params) {
+    console.log('update_commands:', params);
     if (params.command == COMMAND_LIST || params.command == COMMAND_SEARCH) {
 
         $('a[data-article]').off("click");
@@ -113,11 +114,10 @@ function update_commands(params) {
                 'command': COMMAND_LIST,
                 'value': $(this).data('category')
             };
-            
+
             send_data(data);
         });
 
-       
     } else if (params.command == COMMAND_ARTICLE) {
 
         $('[data-header]').on('click', function () {
@@ -142,9 +142,9 @@ function update_commands(params) {
             save_storage(KEY_ARTICLE, JSON.stringify(headers));
 
         })
-
-        let main_id = $('#content').data('articleid');
         // get article ID
+        let main_id = $('#content').data('articleid');
+
         let headers = JSON.parse(load_storage(KEY_ARTICLE, '{}'));
         if (!(headers.hasOwnProperty(main_id))) {
             // if article not exists, let the first paragraph open
@@ -168,8 +168,10 @@ function update_commands(params) {
         });
         if ('scroll' in params) {
             let elem = $(`[data-header=${params.scroll}]`);
-            console.log(elem);
-            $('html, body').animate({ scrollTop: $(elem).offset().top }, 1000);
+            // console.log(elem);
+            $('html, body').animate({
+                scrollTop: $(elem).offset().top - 70
+            }, 1000);
             // alert(params.scroll);
         }
     }
@@ -177,27 +179,21 @@ function update_commands(params) {
 function set_theme(theme) {
     theme = parseInt(theme);
     $("link#theme").attr("href", theme ? "css/light.css" : "css/dark.css");
-    $("img#theme").attr("src", theme ? "img/dark.png" : "img/light.png");
+    // $("img#theme").attr("src", theme ? "img/dark.png" : "img/light.png");
 
-    $('svg#theme use').attr('xlink:href', theme ? 'svg/icons.svg#dark' : 'svg/icons.svg#light');
-
+    $('#theme2').attr('xlink:href', theme ? 'svg/icons.svg#dark' : 'svg/icons.svg#light');
 
     // $("img#logo").attr("src", theme ? "img/logolight.png" : "img/logodark.png");
     // $("link#theme").attr("href",theme ? "css/light.css":"css/dark.css");  
     //    <img id="theme" src="img/light.png" width="32" height="32" alt="" />
 }
-function update_links() {
-    $('a[data-article]').off("click");
-    $('a[data-article]').on("click", function () {
-        send_data({
-            'command': COMMAND_ARTICLE,
-            'value': $(this).data('article')
-        });
+
+function do_search() {
+    send_data({
+        'command': COMMAND_SEARCH,
+        'value': $('#search_input').val()
     });
-    // .off( "click", "#theone", flash )
-
 }
-
 $(document).ready(function () {
     // categories list
     $('img#cat_menu').on('click', function () {
@@ -212,26 +208,27 @@ $(document).ready(function () {
         });
     });
 
+    $('#search_input').on('keydown', function (ev) {
+        if (ev.keyCode == 13)
+            do_search();
+    });
     $('#search_img').on('click', function () {
-        send_data({
-            'command': COMMAND_SEARCH,
-            'value': $('#search_input').val()
-        });
+        do_search();
     });
 
-    $('#cat_list').on('click', function () {
+    $('[data-link="cat_list"]').on('click', function () {
         send_data({
             'command': COMMAND_LIST,
-            'value':-1
+            'value': -1
         });
     });
 
-    
     // debug code
-    // send_data({ 'command': COMMAND_SEARCH, 'value': 'кровь аз' });
+    //send_data({ 'command': COMMAND_SEARCH, 'value': 'xz' });
     // send_data({        'command': COMMAND_ARTICLE,        'value': 47 ,'params':[185, 598]    });
-    // send_data({ 'command': COMMAND_LIST, 'value': 0 });
-    send_data({ 'command': COMMAND_LIST, 'value': -1 }); // show all categories with count
+    send_data({ 'command': COMMAND_LIST, 'value': 0 });
+    //send_data({        'command': COMMAND_LIST,        'value': -1    });
+    // show all categories with count
 
     // theme 
     $('svg#theme').on('click', function (params) {
@@ -242,4 +239,6 @@ $(document).ready(function () {
     });
     let theme = load_storage(KEY_THEME, 0);
     set_theme(theme);
+
+    // do_search();
 });

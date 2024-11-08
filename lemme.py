@@ -3,8 +3,9 @@ from Levenshtein import ratio
 from internal import flask_db_conn
 import pymorphy3
 from internal import read_db
+import copy
 
-MAX_RESULTS = 7
+MAX_RESULTS = None  # или число для ограничения
 HTML_TAGS = ('<span class="search">', "</span>")
 # сколько слов влево/вправо показывается в результатах поиска
 WORDS_FRAMING = 12
@@ -79,11 +80,7 @@ def tokenize_string(line: str) -> dict:
         word = line[start:end]
         if word not in blacklist_words:
             morphem = morph.parse(word)[0].normal_form.upper()
-            if (
-                morphem not in blacklist_words
-                and len(morphem) > 1
-                and len(word) > 1
-            ):
+            if morphem not in blacklist_words and len(morphem) > 1 and len(word) > 1:
                 r.append(
                     {
                         "word": line[start:pos],
@@ -121,9 +118,7 @@ def tokenize_string(line: str) -> dict:
 
 def make_dicts(cursor, row):
 
-    return dict(
-        (cursor.description[idx][0], value) for idx, value in enumerate(row)
-    )
+    return dict((cursor.description[idx][0], value) for idx, value in enumerate(row))
 
 
 def get_articles_parent(articles_id: list, conn) -> dict:
@@ -136,9 +131,7 @@ def get_articles_parent(articles_id: list, conn) -> dict:
         if len(retrieve_keys) == 0:
             break
         params = ",".join(["?"] * len(retrieve_keys))
-        cur = conn.execute(
-            f"SELECT * FROM articles where id in ({params});", retrieve_keys
-        )
+        cur = conn.execute(f"SELECT * FROM articles where id in ({params});", retrieve_keys)
         articles = cur.fetchall()
         retrieve = []
 
@@ -196,7 +189,14 @@ def shortenize(id, params, texts, conn):
     params = params[id]
     texts = texts[id]
 
-    word_index = params["tokens"][0][params["comb"][0]]["word_index"]
+    anchor_word = params["comb"][0]
+    # берем первое слово, будем отталкиваться от него
+    if len(params["comb"]) > 1:
+        word_index = params["tokens"][anchor_word[0]][anchor_word[1]]["word_index"]
+    else:
+        word_index = params["tokens"][0][0]["word_index"]
+    #  params["tokens"][0][params["comb"][0]]["word_index"]
+
     start_word_index = word_index - WORDS_FRAMING
     end_word_index = word_index + WORDS_FRAMING
     if start_word_index < 0:
@@ -206,28 +206,54 @@ def shortenize(id, params, texts, conn):
         end_word_index = texts["word_count"] - 1
         start_word_index = max(0, end_word_index - WORDS_FRAMING * 2)
 
-    # находим все слова из поиска, которые входят в наш показываемый диапазон
-    used_words = []
-
-    for no in range(len(params["comb"])):
-        tmp = params["tokens"][no][params["comb"][no]]["word_index"]
-        if tmp >= start_word_index and tmp <= end_word_index:
-            used_words.append(tmp)
-
-    # добавляем начало и конец, по ним будем резать фразу
-    # sql_array = used_words + [start_word_index, end_word_index]
-
-    # читаем из базы позиции слов
-    tmp = read_db(
+    # читаем из базы позиции начальных и конечных слов, по ним режем строку
+    db_word_positions = read_db(
         sql_filename="lemme/get_word_pos.sql",
         params={
             "article_id": id,
-            "windexes": used_words + [start_word_index, end_word_index],
+            "windexes": [start_word_index, end_word_index],  # добавляем начало и конец, по ним будем резать фразу
+        },
+    )
+
+    # срезаем нашу строку
+    char_start = db_word_positions[0]["start"]  # lemmas_usage[start_word_index][0]
+    char_end = db_word_positions[1]["start"] + db_word_positions[0]["len"]  # lemmas_usage[end_word_index][0] + lemmas_usage[end_word_index][1]
+    result = texts["txt"][char_start : char_end + 1]
+
+    # все токены из всех комбинаций проверяем на вхождение в диапазон, входящие добавляем в массив и сортируем по word index
+    # потом этот отсортированный массив передаем как markup
+    markup = []
+    for token_set in params["tokens"]:
+        for token in token_set:
+            if start_word_index <= token["word_index"] and end_word_index >= token["word_index"]:
+                markup.append((token["start"] - char_start, token["len"]))
+            # print(token)
+    """
+    # находим все слова из поиска, которые входят в наш показываемый диапазон
+    # включая (?) то самое первое слово, взятое за основу
+    used_words = []
+    if len(params["comb"]) > 1:
+
+        for token_index in range(len(params["comb"])):
+            t = params["comb"][token_index]
+            word_index = params["tokens"][t[0]][t[1]]["word_index"]
+            # tmp = params["tokens"][no][params["comb"][no]]["word_index"]
+            if word_index >= start_word_index and word_index <= end_word_index:
+                used_words.append(word_index)
+    else:
+        used_words.append(word_index)
+
+    # читаем из базы позиции слов
+    db_word_positions = read_db(
+        sql_filename="lemme/get_word_pos.sql",
+        params={
+            "article_id": id,
+            "windexes": used_words + [start_word_index, end_word_index],  # добавляем начало и конец, по ним будем резать фразу
         },
     )
     # переделываем в удобоваримый вид
     lemmas_usage = {}
-    for x in tmp:
+    for x in db_word_positions:
         lemmas_usage[x["word_index"]] = [x["start"], x["len"]]
 
     # срезаем нашу строку
@@ -238,14 +264,14 @@ def shortenize(id, params, texts, conn):
     # готовим массив со словами и вставляем ссылки
     markup = []
 
-    for tmp in list(used_words):
-        x = lemmas_usage[tmp]
+    for db_word_positions in list(used_words):
+        x = lemmas_usage[db_word_positions]
         x[0] -= char_start
         markup.append(x)
 
         # markup[tmp] = sql_result[tmp]
         # markup[tmp][0] -= char_start
-
+    """
     result = insert_markup(result, markup, HTML_TAGS)
 
     # добавляем трёхточие, если была обрезка
@@ -257,6 +283,30 @@ def shortenize(id, params, texts, conn):
 
 
 def do_search(needle: str, conn=None):
+
+    def generate_combinations(result, arrays, array_index=0, current_combination=[]):
+        #  Если достигли конца списка массивов
+        if array_index == len(arrays):
+            #  Добавить текущую комбинацию в список комбинаций
+            result.append(current_combination.copy())
+            return result
+
+        #  Если текущий массив пуст, пропускаем его и переходим к следующему
+        if len(arrays[array_index]) == 0:
+            generate_combinations(result, arrays, array_index + 1, current_combination)
+        else:
+            #  Итерируемся по каждому элементу текущего массива
+            for element_index in range(len(arrays[array_index])):
+                #  Добавляем элемент к текущей комбинации
+                current_combination.append((array_index, element_index))
+
+                #  Рекурсивно вызываем функцию для следующего массива
+                result = generate_combinations(result, arrays, array_index + 1, current_combination)
+
+                #  Удаляем последний элемент для возврата к предыдущему состоянию
+                current_combination.pop()
+        return result
+
     if conn is None:
         conn = flask_db_conn()
     needle = tokenize_string(needle)
@@ -265,52 +315,54 @@ def do_search(needle: str, conn=None):
 
     # готовим временную таблицу, куда заносим наш поисковый запрос...
     conn.create_function("levenshtein_ratio", 2, levenshtein_ratio)
-    # conn.execute("DROP TEMPORARY TABLE if EXISTS 'needle';")
-    conn.execute(
-        "CREATE TEMPORARY TABLE 'needle'('dict_index' INT,'order_no' INT, 'morphem' TEXT,'ratio' real);"
-    )
+    conn.execute("DROP TABLE if EXISTS 'needle';")
+    conn.execute("CREATE TABLE 'needle'('dict_index' INT,'order_no' INT, 'morphem' TEXT,'ratio' real);")
 
     # ... и наполняем её, индекс токена и коэффициент сравнения со словарём
     tmp = 0
 
     for token in needle:
-        sql = f"insert into 'needle' ('morphem','order_no') values ('{token['morphem']}',{tmp});"
-        conn.execute(sql)
-        sql = f"update 'needle' set ('dict_index','ratio')=(select 'lemmas'.'id', levenshtein_ratio('needle'.'morphem','lemmas'.'lemma') lr from 'lemmas' order by lr desc limit 1) WHERE 'needle'.'order_no'={tmp};"
-        conn.execute(sql)
-        conn.commit()
-        tmp += 1
-
-    # обновляем леммы из словаря (чтобы были не морфемы)
-    cur = conn.execute(
-        "select n.order_no,n.dict_index,l.lemma from needle n,lemmas l where n.dict_index = l.id;"
-    )
-    while True:
-        a = cur.fetchone()
-        if a is None:
-            break
-        needle[a["order_no"]].update(
-            {"dict_index": a["dict_index"], "lemma": a["lemma"]}
+        read_db(
+            # sql_query=f"insert into 'needle' ('morphem','order_no') values ('{token['morphem']}',{tmp});",
+            sql_query=f"insert into 'needle' ('morphem','order_no') values (:morphem,:order_no);",
+            result_required=False,
+            params={
+                "morphem": token["morphem"],
+                "order_no": tmp,
+            },
         )
+        # conn.execute(sql)
+        read_db(
+            sql_query=f"update 'needle' set ('dict_index','ratio')=(select 'lemmas'.'id', levenshtein_ratio('needle'.'morphem','lemmas'.'lemma') lr from 'lemmas' order by lr desc limit 1) WHERE 'needle'.'order_no'=:order_no;",
+            result_required=False,
+            params={
+                "order_no": tmp,
+            },
+        )
+        # conn.execute(sql)
+        conn.commit()
+        # del sql
+        tmp += 1
+    del tmp
+
+    # обновляем леммы из словаря (чтобы были не морфемы) (напр. дельфины -> ДЕЛЬФИН)
+    query_result = read_db(sql_query=f"select n.order_no,n.dict_index,l.lemma from needle n,lemmas l where n.dict_index = l.id;")
+    for qr in query_result:
+
+        needle[qr["order_no"]].update({"dict_index": qr["dict_index"], "lemma": qr["lemma"]})
+    del qr, query_result
 
     # находим токены в статьях, заполняем нахождение в статьях наших токенов
-    cur = conn.execute(
-        "SELECT needle.order_no,lemmas_usage.* FROM needle,lemmas_usage WHERE needle.dict_index=lemmas_usage.lemma_id;"
-    )
-    while True:
-        a = cur.fetchone()
-        if a is None:
-            break
-        if not a["article_id"] in s_res:
+    query_result = read_db(sql_query="SELECT needle.order_no,lemmas_usage.* FROM needle,lemmas_usage WHERE needle.dict_index=lemmas_usage.lemma_id;")
+    for qr in query_result:
+        if not qr["article_id"] in s_res:
 
-            s_res[a["article_id"]] = {
-                "tokens": [[] for _ in range(len(needle))]
-            }
-        s_res[a["article_id"]]["tokens"][a["order_no"]].append(
+            s_res[qr["article_id"]] = {"tokens": [[] for _ in range(len(needle))]}
+        s_res[qr["article_id"]]["tokens"][qr["order_no"]].append(
             {
-                "start": a["start"],
-                "len": a["len"],
-                "word_index": a["word_index"],
+                "start": qr["start"],
+                "len": qr["len"],
+                "word_index": qr["word_index"],
             }
         )
 
@@ -325,9 +377,7 @@ def do_search(needle: str, conn=None):
 
         for article_id in s_res:
             current_len = needle_len - s_res[article_id]["tokens"].count([])
-            if max_len is None or (
-                max_len is not None and max_len < current_len
-            ):
+            if max_len is None or (max_len is not None and max_len < current_len):
                 max_len = current_len
 
         # отбрасываем результаты, где найденных токенов меньше, чем max_len
@@ -336,74 +386,54 @@ def do_search(needle: str, conn=None):
             current_len = needle_len - s_res[article_id]["tokens"].count([])
             if current_len < max_len:
                 del s_res[article_id]
-        del max_len, current_len
+        # del max_len, current_len
 
         # для оставшихся результатов считаем лучшее расстояние между словами
-        max_mqd = 0
+        max_deviation = 0
 
         for article_id in list(s_res):
             best_value, best_comb = None, None
             token_shortcut = s_res[article_id]["tokens"]
-            # Используем itertools.product для генерации всех комбинаций индексов
 
-            index_combinations = list(
-                itertools.product(
-                    *(range(len(sublist)) for sublist in token_shortcut)
-                )
-            )
+            #  Пример использования
+            index_combinations = generate_combinations([], token_shortcut)
 
-            for comb in index_combinations:
+            for combination in index_combinations:
                 number_set = []
+                for i in combination:
+                    number_set.append(token_shortcut[i[0]][i[1]]["word_index"])
 
-                for tmp in range(needle_len):
-                    number_set.append(
-                        token_shortcut[tmp][comb[tmp]]["word_index"]
-                    )
-
-                sdev = math.sqrt(
-                    sum(
-                        [
-                            (x - sum(number_set) / needle_len) ** 2
-                            for x in number_set
-                        ]
-                    )
-                    / needle_len
-                )
-                if best_comb is None or (
-                    best_comb is not None and best_value > sdev
-                ):
-                    best_comb = comb
-                    best_value = sdev
-                del number_set, sdev
+                standard_dev = math.sqrt(sum([(x - sum(number_set) / needle_len) ** 2 for x in number_set]) / needle_len)
+                if best_comb is None or (best_comb is not None and best_value > standard_dev):
+                    best_comb = combination
+                    best_value = standard_dev
+                # del number_set, standard_dev
             # del comb
             # search_result[article_id]['dev'] = {'comb':best_comb,'value':1-(best_value/articles_cache[article_id]['word_count'])}
             s_res[article_id]["comb"] = best_comb
             s_res[article_id]["value"] = best_value
-            max_mqd = max(max_mqd, best_value)
+            max_deviation = max(max_deviation, best_value)
             # search_result[article_id]['t1'] =best_value/articles_cache[article_id]['word_count']
         # del best_value, best_comb
 
         # нормализируем СКО к 0...1
 
         for article_id in list(s_res):
-            s_res[article_id]["value"] = (
-                1 - s_res[article_id]["value"] / max_mqd
-            )
-        del max_mqd
+            s_res[article_id]["value"] = 1 - s_res[article_id]["value"] / max_deviation
+        # del max_deviation
     else:  # если слово в поиске одно - то берем первую комбинацию и СКО = 0
 
         for article_id in list(s_res):
             # search_result[article_id]['dev'] = {'comb':(0),'value':0}
             s_res[article_id]["comb"] = (0,)
             s_res[article_id]["value"] = 0
+        del article_id
 
     # вторая оценка, отношение количества слов в поиске к количеству слов в статье
 
     for article_id in list(s_res):
-        s_res[article_id]["word_ratio"] = (
-            needle_len / articles_parent[article_id]["word_count"]
-        )
-
+        s_res[article_id]["word_ratio"] = needle_len / articles_parent[article_id]["word_count"]
+    del article_id
     # сортируем результаты по сумме двух оценок
     s_res = dict(
         sorted(
@@ -414,29 +444,44 @@ def do_search(needle: str, conn=None):
 
     # отбрасываем если результатов много
     total_results = len(s_res)
-    showed = min(total_results, MAX_RESULTS)
-    s_res = dict(list(s_res.items())[:showed])
+    if MAX_RESULTS is not None:
+        showed = min(total_results, MAX_RESULTS)
+        s_res = dict(list(s_res.items())[:showed])
+    else:
+        showed = total_results
 
     # строим дерево результатов, сразу накапливаем ID статей, для запроса текстов
-    search_tree, articles_text = {}, []
+    search_tree = {}
+    collect_id = []
 
     for article_id in list(s_res)[:showed]:
 
         article_line, id = [], article_id
         # находим обратную цепочку, от детей к паренту
         while id is not None:
-            if not (id in articles_text):
-                articles_text.append(id)
+            # собираем айдишки
+            if not (id in collect_id):
+                collect_id.append(id)
             article_line.insert(0, id)
             id = articles_parent[id]["parent"]
 
+        # вытаскиваем родительский ID и строим дерево от него
         id = article_line.pop(0)
         if not (id in search_tree):
             search_tree[id] = []
         search_tree[id].append(article_line)
-        del article_line, id
+        del id, article_line
+    del article_id
 
-    articles_text = get_articles_text(articles_text, conn)
+    # get_articles_text
+
+    query_result = read_db(
+        sql_filename="article_work/get_articles_text.sql",
+        params={"id": collect_id},
+    )
+    articles_text = {}
+    for qr in query_result:
+        articles_text[qr["id"]] = {"txt": qr["txt"], "word_count": qr["word_count"]}
 
     # выводим общие параметры, использованные в поиске
     search_info = [f"Результатов поиска: {total_results}"]
@@ -451,6 +496,7 @@ def do_search(needle: str, conn=None):
     for article_id in search_tree:
         # заголовок статьи
         article = {
+            # "txt": articles_text[article_id],
             "txt": articles_text[article_id]["txt"],
             "id": article_id,
             "lines": [],
@@ -458,22 +504,50 @@ def do_search(needle: str, conn=None):
 
         for branch in search_tree[article_id]:
             line = []
-            # для всех, кроме последнего, выводим полностью
-            for id in branch[:-1]:
-                line.append({"txt": articles_text[id]["txt"], "id": id})
+            if len(branch) > 0:  # for header
+                line.append(
+                    {
+                        "txt": articles_text[branch[0]]["txt"],
+                        # "txt": articles_text[branch[0]],
+                        "id": branch[0],
+                    }
+                )
+            if len(branch) > 1:  # for paragraph
 
-            # последнее, с леммами
-            id = branch[-1]
-            aa = shortenize(id, s_res, articles_text, conn)
-            line.append(
-                {
-                    "txt": aa,
-                    "id": id,
-                    #    'lemmas':0
-                }
-            )
-            # print(aa)
-            article["lines"].append(line)
+                # укороченное содержание
+                shortened = shortenize(branch[1], s_res, articles_text, conn)
+                line.append(
+                    {
+                        "txt": shortened,
+                        "id": branch[1],
+                    }
+                )
+            else:  # for article
+                # проверяем, есть ли ещё строки для данной статьи
+                # если нет - то выводим "название препарата"
+                if len(search_tree[article_id]) == 0:
+                    line.append(
+                        {
+                            "txt": "no paragraph",
+                            "id": 0,
+                        }
+                    )
+                """
+                # для всех, кроме последнего, выводим полностью
+                for id in branch[:-1]:
+                    line.append({"txt": articles_text[id]["txt"], "id": id})
+
+                # последнее, с леммами
+                id = branch[-1]
+                shortened = shortenize(id, s_res, articles_text, conn)
+                line.append(
+                    {
+                        "txt": shortened,
+                        "id": id,
+                    }
+                )"""
+            if len(line) > 0:
+                article["lines"].append(line)
         search_result.append(article)
 
     return {
@@ -483,6 +557,7 @@ def do_search(needle: str, conn=None):
     }
 
 
+"""
 def main():
     conn = sqlite3.connect("C:\\drug_site\\drugs.db")
     conn.row_factory = make_dicts
@@ -494,3 +569,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+"""

@@ -14,6 +14,7 @@ from lemme import do_search, insert_markup, HTML_TAGS
 COMMAND_LIST = 0
 COMMAND_SEARCH = 1
 COMMAND_ARTICLE = 2
+SITE_TITLE = "Мозгоправ"
 KEY_ARTICLE = "HEADERS"
 
 
@@ -22,11 +23,11 @@ def cmd_list(data: dict) -> dict:
     if cat_id >= 0:  # for category details
 
         category_name = internal.read_db(
-            sql_filename="category_name.sql",
+            sql_filename="cat/category_name.sql",
             params={"category_id": cat_id},
         )[0]
         medicine_list = internal.read_db(
-            sql_filename="medicine_list.sql",
+            sql_filename="cat/medicine_list.sql",
             params={"category_id": cat_id},
         )
         html = render_template(
@@ -37,7 +38,9 @@ def cmd_list(data: dict) -> dict:
         )
     else:
         # for category list
-        categories_list = internal.read_db(sql_filename="cat_count.sql")
+        categories_list = internal.read_db(
+            sql_filename="cat/cat_count.sql",
+        )
         html = render_template(
             "categories_list.html",
             categories_list=categories_list,
@@ -49,6 +52,13 @@ def cmd_list(data: dict) -> dict:
             "attr_set": [
                 ["data-lemmas", json.dumps([])],
             ],
+        }
+    )
+
+    data["dom"].append(
+        {
+            "selector": "title",
+            "html": f"{SITE_TITLE} :: список категорий",
         }
     )
     return data
@@ -63,39 +73,36 @@ def cmd_article(data: dict, input_data) -> dict:
     # находим родительский артикль
     path = [data["params"]["value"]]
     while True:
-        tmp = internal.read_db(
+        parent = internal.read_db(
             sql_filename="article_work/get_parent.sql",
-            params={"id": path[-1]},
+            params={"id": path[0]},
         )
-        if len(tmp) == 0:
+        if len(parent) == 0:
             break
-        tmp = tmp[0]["parent"]
-        if tmp is None:
+        parent = parent[0]["parent"]
+        if parent is None:
             break
-        path.append(tmp)
+        path.insert(0, parent)
 
     # если заголовок или параграф
     # то открываем в бразуере этот заголовок
+    # и записываем в localstorage этот открытый параграф
     if len(path) >= 2:
-        data["storage"].append(
-            {"key": KEY_ARTICLE, "value": {path[-1]: [path[-2]]}, "action": 0}
-        )
-        data["params"]["scroll"] = path[-2]
+        data["storage"].append({"key": KEY_ARTICLE, "value": {path[0]: [path[1]]}, "action": 0})
+        data["params"]["scroll"] = path[1]
 
-    # теперь в path[-1] у нас родительский ID, читаем всю статью
+    # теперь в path[0] у нас родительский ID, читаем всю статью
     headers = internal.read_db(
         sql_filename="article_work/get_child.sql",
-        params={
-            "parent": [
-                path[-1],
-            ]
-        },
+        params={"parent": [path[0]]},
     )
+    doc_name = internal.read_db(
+        sql_filename="article_work/get_article.sql",
+        params={"id": path[0]},
+    )[0]
 
-    texts, tree = (
-        {},
-        {},
-    )  # в texts у нас чистые тексты, в tree соответсвие параграфам заголовков
+    # в texts у нас чистые тексты, в tree соответсвие параграфам заголовков
+    texts, tree = {}, {}
     for h in headers:
         texts[h["id"]] = h["txt"]
         tree[h["id"]] = []
@@ -104,6 +111,9 @@ def cmd_article(data: dict, input_data) -> dict:
         sql_filename="article_work/get_child.sql",
         params={"parent": list(tree)},
     )
+
+    # сливаем все тексты (параграфы и статьи) в один массив
+    # заодно делаем дерево, какая статья какому параграфу
     for p in paragraphs:
         texts[p["id"]] = p["txt"]
         tree[p["parent"]].append(p["id"])
@@ -111,18 +121,11 @@ def cmd_article(data: dict, input_data) -> dict:
     if "params" in input_data:  # находим все использования лемм
         used_lemmas = internal.read_db(
             sql_filename="article_work/get_used_lemmas.sql",
-            params={
-                "articles_list": list(texts),
-                "lemmas_list": input_data["params"],
-            },
+            params={"articles_list": list(texts), "lemmas_list": input_data["params"]},
         )
         used_articles = set(item["article_id"] for item in used_lemmas)
         for id in used_articles:
-            markup = [
-                (x["start"], x["len"])
-                for x in used_lemmas
-                if x["article_id"] == id
-            ]
+            markup = [(x["start"], x["len"]) for x in used_lemmas if x["article_id"] == id]
             texts[id] = insert_markup(texts[id], markup, HTML_TAGS)
             # print(id, texts[id])
         pass
@@ -130,11 +133,15 @@ def cmd_article(data: dict, input_data) -> dict:
     data["dom"].append(
         {
             "selector": "#content",
-            "html": render_template("article.html", tree=tree, texts=texts),
-            "attr_set": [
-                ["data-articleid", path[-1]],
-            ],
+            "html": render_template("article.html", tree=tree, texts=texts, doc=doc_name["txt"]),
+            "attr_set": [["data-articleid", path[0]]],
         },
+    )
+    data["dom"].append(
+        {
+            "selector": "title",
+            "html": f"{SITE_TITLE} :: {doc_name['txt']}",
+        }
     )
     return data
 
@@ -160,6 +167,14 @@ def cmd_search(data: dict) -> dict:
             ],
         }
     )
+
+    # добавляем титул страницы
+    data["dom"].append(
+        {
+            "selector": "title",
+            "html": f"{SITE_TITLE} :: результаты поиска",
+        }
+    )
     return data
 
 
@@ -176,6 +191,7 @@ def main():
 def parse_data():
 
     input_data = json.loads(request.get_data())
+    print(input_data)
     result = {
         "dom": [],
         "storage": [],

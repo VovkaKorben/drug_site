@@ -44,7 +44,9 @@ a {
 .rot90 {
     transform: rotate(90deg);
 }
-
+.doc_name
+{font-size: 24px;
+text-decoration:underline;}
 h1 {
     font-family: "Roboto", system-ui;
     font-weight: 700;
@@ -53,6 +55,7 @@ h1 {
     margin-top: 5px;
     margin-bottom: 5px;
     cursor: pointer;
+     font-size: 20px;
 }
 
 p {

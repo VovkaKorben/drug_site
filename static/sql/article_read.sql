@@ -1,1 +1,0 @@
-select * from articles where parent = :id order by id;

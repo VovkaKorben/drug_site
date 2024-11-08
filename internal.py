@@ -29,9 +29,7 @@ class db_error(Exception):
 
 def load_template(templatefilename):
     try:
-        templatefilename = os.path.join(
-            app.static_folder, "templates", templatefilename
-        )
+        templatefilename = os.path.join(app.static_folder, "templates", templatefilename)
         templatefile = io.open(templatefilename, mode="r", encoding="utf-8")
         try:
             templatecontent = templatefile.read()
@@ -39,9 +37,7 @@ def load_template(templatefilename):
         finally:
             templatefile.close()
     except:
-        err_text = (
-            f"error load <b>{templatefilename}</b>:\n{traceback.format_exc()}"
-        )
+        err_text = f"error load <b>{templatefilename}</b>:\n{traceback.format_exc()}"
         err_text = "<br />\n".join(err_text.split("\n"))
         return {"error": True, "data": err_text}
 
@@ -50,9 +46,7 @@ def read_sql_file(sqlfilename):
     sqlpath = os.path.join(app.root_path, "static", "sql", sqlfilename)
     # sqlpath = "static/sql/" + sqlfilename
     if not os.path.isfile(sqlpath):
-        raise db_error(
-            f"Error in <b>read_db2</b>\nQuery <b>{sqlfilename}</b> not exists!"
-        )
+        raise db_error(f"Error in <b>read_db2</b>\nQuery <b>{sqlfilename}</b> not exists!")
     try:
         sqlfile = io.open(sqlpath, mode="r", encoding="utf-8")
         try:
@@ -61,22 +55,22 @@ def read_sql_file(sqlfilename):
             sqlfile.close
     except:
         # return {'error': True, 'data': f'Error in <b>read_db2</b>\nFilename: <b>{sqlfilename}</b>\nQuery: <b>{sqlquery}</b>\n{traceback.format_exc()}\n'}
-        raise db_error(
-            f"Error in <b>read_sql_file</b>\nSQL filename: <b>{sqlfilename}</b><hr>\n{traceback.format_exc()}\n"
-        )
+        raise db_error(f"Error in <b>read_sql_file</b>\nSQL filename: <b>{sqlfilename}</b><hr>\n{traceback.format_exc()}\n")
 
 
 def read_db(
-    sql_filename=None, sql_query=None, params={}, conn=None
+    sql_filename=None,
+    sql_query=None,
+    params={},
+    result_required=True,
+    conn=None,
 ):  # for select sql
-
+    data = None
     try:
         if sql_filename is not None:
             sqlpath = os.path.join(app.root_path, "static", "sql", sql_filename)
             if not os.path.isfile(sqlpath):
-                raise db_error(
-                    f"Error while fetching DB\nQuery {sql_filename} not exists!"
-                )
+                raise db_error(f"Error while fetching DB\nQuery {sql_filename} not exists!")
             try:
                 sqlfile = io.open(sqlpath, mode="r", encoding="utf-8")
                 sql_query = sqlfile.read()
@@ -96,7 +90,8 @@ def read_db(
         cur = conn.execute(sql_query, params)
 
         try:
-            data = cur.fetchall()
+            if result_required:
+                data = cur.fetchall()
         finally:
             cur.close()
 
@@ -120,9 +115,7 @@ def read_db3(sqlfilename, params={}):  # for select sql
     # sqlpath = "static/sql/" + sqlfilename
     sqlpath = os.path.join(app.root_path, "static", "sql", sqlfilename)
     if not os.path.isfile(sqlpath):
-        raise db_error(
-            f"Error while fetching DB\nQuery {sqlfilename} not exists!"
-        )
+        raise db_error(f"Error while fetching DB\nQuery {sqlfilename} not exists!")
 
     try:
         sqlfile = io.open(sqlpath, mode="r", encoding="utf-8")
@@ -143,9 +136,7 @@ def read_db3(sqlfilename, params={}):  # for select sql
 
     except:
 
-        raise db_error(
-            f"{'-'*60}\nError while fetching DB\nSQL filename: {sqlfilename}\n{traceback.format_exc()}\n{'-'*60}"
-        )
+        raise db_error(f"{'-'*60}\nError while fetching DB\nSQL filename: {sqlfilename}\n{traceback.format_exc()}\n{'-'*60}")
     return data
 
 
@@ -166,9 +157,7 @@ def sqlite_trace_callback(value):
 
 
 def make_dicts(cursor, row):
-    return dict(
-        (cursor.description[idx][0], value) for idx, value in enumerate(row)
-    )
+    return dict((cursor.description[idx][0], value) for idx, value in enumerate(row))
 
 
 def make_raw(cursor, row):
