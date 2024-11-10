@@ -1,19 +1,18 @@
 <div class="doc_name">{{doc}}</div>
 {% for header_id in tree %}
-<div>
-    <div data-header={{header_id}} class="flex_left_center">
-        <!-- <div> -->
-        <svg class="svgimg svgbtn rot90" style="cursor: pointer;">
+<div data-header={{header_id}}>
+    <div class="header_wrapper flex_left_middle svghover">
+        <svg class="svgimg svgbtn  rot90">
             <use xlink:href="svg/icons.svg#chevron"></use>
         </svg>
-        <!-- <img class="rot90" src="img/chevron_right.png" width="32" height="32" alt=">" /> -->
-        <!-- </div> -->
         <h1>{{texts[header_id]|safe}}</h1>
     </div>
-    <div>
+
+    <div class="text_wrapper">
         {% for paragraph_id in tree[header_id] %}
-        <p data-paragraph="{{paragraph_id}}">{{texts[paragraph_id]|safe}}</p>
+        <p>{{texts[paragraph_id]|safe}}</p>
         {% endfor %}
     </div>
 </div>
+
 {% endfor %}

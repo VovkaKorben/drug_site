@@ -1,9 +1,14 @@
+SELECT
+	c.category_id,
+	c.category_name,
+	cval.ccnt 
+FROM
+	(
+			SELECT mc.category_id AS cid,COUNT(mc.category_id) AS ccnt FROM medicine_categories mc GROUP BY mc.category_id
+		UNION
+			SELECT 0,COUNT(DISTINCT mc.category_id) FROM medicine_categories mc
+	)
+AS cval
 
-select c.category_id,c.category_name,cval.ccnt from
-
-(SELECT mc.category_id AS cid, COUNT(mc.category_id) AS ccnt FROM medicine_categories mc GROUP BY mc.category_id
-UNION 
-SELECT 0 , COUNT(mc.category_id) FROM medicine_categories mc) as cval
-
-LEFT JOIN categories c ON c.category_id = cval.cid
-order by c.order_no;
+LEFT JOIN categories c ON c.category_id = cval.cid 
+ORDER BY c.order_no;

@@ -8,7 +8,7 @@ from glob import glob
 
 
 # ARTICLE_DIR = "art3"
-ARTICLE_DIR = "C:\\drug_site\\articles"
+ARTICLE_DIR = "art5"
 
 
 def make_dicts(cursor, row):
@@ -20,7 +20,7 @@ def make_dicts(cursor, row):
 def put_articles(path: str, conn):
     file_names = [
         y
-        for x in os.walk(ARTICLE_DIR)
+        for x in os.walk(path)
         for y in glob(os.path.join(x[0], "*.txt"))
     ]
     # file_names = [f for f in os.listdir(path)]

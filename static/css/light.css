@@ -16,7 +16,7 @@ a:hover {
 }
 
 span.search,
-#header_container,
+#header_wrapper,
 input[ type="text"],
 div.selectable:hover {
   background-color: #c7c7c7;

@@ -16,24 +16,19 @@
     margin: 15px;
 }
 
-h1 {
-    /* background-color: #ff000024; */
+
+
+
+.header_wrapper
+{ border: 1px dashed red;
+border-radius: 10px;
+background-color: #f004;}
+.text_wrapper{
+    border: 1px dashed lime;
+    border-radius: 10px;
+    background-color: #00ff0040;
 }
 
-p {
-    /* background-color: #4eff0024; */
-}
-
-span.search
-{
-     /* border-bottom: 2px dotted red; */
-    /* border: 3px dotted red; */
-    
-}
-#header_container div {
-    /* border: 1px dotted #0629db; */
-}
-
-svg {
-    /* border: 1px solid red; */
+#content{
+    border: 1px solid yellow;
 }

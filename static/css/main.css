@@ -81,7 +81,7 @@ input[ type="text"]:focus {
     height: 90%;
 }
 
-#header_container {
+#header_wrapper {
     width: 100%;
     position: fixed;
     top: 0px;
@@ -90,15 +90,33 @@ input[ type="text"]:focus {
 }
 
 
-#header_line>* {
+#header_items>* {
     margin: 0px 12px;
 }
 #menu_buttons>*{
     margin: 0px 2px;
 }
 
+.flex_left_middle
+{
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	justify-content: flex-start;
+	align-items: center;
+	align-content: stretch;
+}
+.flex_center_middle
+{
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	justify-content: center;
+	align-items: center;
+	align-content: stretch;
+}
 
-
+/*
 .flex_vc {
     display: flex;
     flex-direction: column;
@@ -134,7 +152,7 @@ input[ type="text"]:focus {
     align-items: center;
     align-content: stretch;
 }
-
+*/
 
 
 /*********************
@@ -143,8 +161,9 @@ desktop
 @media (min-width: 1000px) {
 
     #content,
-    #header_line {
+    #header_items {
         width: 60%;
+        /* margin-left: auto;        margin-right: auto; */
     }
 }
 
@@ -154,12 +173,9 @@ PHONE
 @media (max-width: 1000px) {
 
     #content,
-    #header_line {
+    #header_items {
         width: 90%;
-    }
-
-    #content,
-    #header_line {
+  
         padding-left: 5%;
         padding-right: 5%;
     }

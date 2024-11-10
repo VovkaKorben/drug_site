@@ -50,7 +50,10 @@ def cmd_list(data: dict) -> dict:
             "selector": "#content",
             "html": html,
             "attr_set": [
-                ["data-lemmas", json.dumps([])],
+                {
+                    "attr": "data-lemmas",
+                    "value": json.dumps([]),
+                }
             ],
         }
     )
@@ -134,7 +137,12 @@ def cmd_article(data: dict, input_data) -> dict:
         {
             "selector": "#content",
             "html": render_template("article.html", tree=tree, texts=texts, doc=doc_name["txt"]),
-            "attr_set": [["data-articleid", path[0]]],
+            "attr_set": [
+                {
+                    "attr": "data-docid",
+                    "value": path[0],
+                }
+            ],
         },
     )
     data["dom"].append(
@@ -143,6 +151,7 @@ def cmd_article(data: dict, input_data) -> dict:
             "html": f"{SITE_TITLE} :: {doc_name['txt']}",
         }
     )
+    # print(data)
     return data
 
 
@@ -163,7 +172,10 @@ def cmd_search(data: dict) -> dict:
             "selector": "#content",
             "html": html,
             "attr_set": [
-                ["data-lemmas", json.dumps(used_lemmas)],
+                {
+                    "attr": "data-lemmas",
+                    "value": json.dumps(used_lemmas),
+                }
             ],
         }
     )
@@ -191,7 +203,7 @@ def main():
 def parse_data():
 
     input_data = json.loads(request.get_data())
-    print(input_data)
+    # print(input_data)
     result = {
         "dom": [],
         "storage": [],

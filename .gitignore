@@ -11,3 +11,5 @@ index/
 sqlite3.log
 .gitignore
 test.py
+articles_test_2/
+articles_test_3/

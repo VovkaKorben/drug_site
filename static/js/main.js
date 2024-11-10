@@ -24,17 +24,15 @@ function load_storage(key, def) {
     return p;
 }
 function parse_answer(result) {
-    if ('storage' in result) {
-        $.each(result.storage, function (i, storage_action) {
+    if ('storage'in result) {
+        $.each(result.storage, function(i, storage_action) {
             switch (storage_action.action) {
-                case STORAGE_UPDATE:
-                    let s = load_storage(storage_action.key, JSON.stringify(storage_action.value));
-                    s = JSON.parse(s);
-                    // if (typeof x === 'object')
-                    s = Object.assign({}, s, storage_action.value);
-                    save_storage(storage_action.key, JSON.stringify(s));
-                    // console.log(`STORAGE_UPDATE: ${s}`);
-                    break;
+            case STORAGE_UPDATE:
+                let s = load_storage(storage_action.key, JSON.stringify(storage_action.value));
+                s = JSON.parse(s);
+                s = Object.assign({}, s, storage_action.value);
+                save_storage(storage_action.key, JSON.stringify(s));
+                break;
             }
             // console.log(`storage_action: ${storage_action}`);
 
@@ -42,37 +40,32 @@ function parse_answer(result) {
 
     }
 
-    if ('dom' in result) {
+    if ('dom'in result) {
 
-        jQuery.each(result.dom, function (index, item) {
-            // do something with `item` (or `this` is also `item` if you like)
+        jQuery.each(result.dom, function(index, item) {
             elem = $(item.selector);
             if (elem) {
-                if ('html' in item)
+                if ('html'in item)
                     $(elem).html(item.html);
-                if ('css_add' in item)
-                    jQuery.each(item.css_add, function (index, item) {
+                if ('css_add'in item)
+                    jQuery.each(item.css_add, function(index, item) {
                         $(elem).addClass(item);
                     });
-                if ('css_remove' in item)
-                    jQuery.each(item.css_remove, function (index, item) {
+                if ('css_remove'in item)
+                    jQuery.each(item.css_remove, function(index, item) {
                         $(elem).removeClass(item);
                     });
-                if ('attr_set' in item)
-                    jQuery.each(item.attr_set, function (k, v) {
-                        // $(elem).removeClass(item);
-                        $(elem).attr(v[0], v[1]);
+                if ('attr_set'in item)
+                    jQuery.each(item.attr_set, function(k, v) {
+                        $(elem).attr(v.attr, v.value);
+                        // console.log('[store] ',v.attr,': ',$(elem).attr(v.attr));
+                        // console.log('[check] ',$(elem).attr(v.attr));
                     });
             }
 
         });
     }
-    if ('attr' in result) {
 
-        $.each(result.attr.set, function (key, value) {
-            alert(key + ": " + value);
-        });
-    }
 }
 function send_data(data) {
 
@@ -97,7 +90,7 @@ function update_commands(params) {
     if (params.command == COMMAND_LIST || params.command == COMMAND_SEARCH) {
 
         $('a[data-article]').off("click");
-        $('a[data-article]').on("click", function () {
+        $('a[data-article]').on("click", function() {
             data = {
                 'command': COMMAND_ARTICLE,
                 'value': $(this).data('article')
@@ -109,7 +102,7 @@ function update_commands(params) {
         });
 
         $('a[data-category]').off("click");
-        $('a[data-category]').on("click", function () {
+        $('a[data-category]').on("click", function() {
             data = {
                 'command': COMMAND_LIST,
                 'value': $(this).data('category')
@@ -120,53 +113,54 @@ function update_commands(params) {
 
     } else if (params.command == COMMAND_ARTICLE) {
 
-        $('[data-header]').on('click', function () {
-            const header_id = $(this).data('header');
+        $('[data-header]').on('click', function() {
+            let doc_id = $('#content').attr('data-docid');
+            let header_id = $(this).data('header');
             let headers = JSON.parse(load_storage(KEY_ARTICLE, '{}'));
-            const main_id = $('#content').data('articleid');
+
             // get article ID
-            const opened_search = headers[main_id].indexOf(header_id);
+            let opened_search = headers[doc_id].indexOf(header_id);
 
             if (opened_search > -1) {
                 // hide
-                headers[main_id].splice(opened_search, 1);
-                $(this).children('svg').removeClass('rot90');
-                $(this).siblings('div').slideUp();
+                headers[doc_id].splice(opened_search, 1);
+                $(this).find('.header_wrapper svg').removeClass('rot90');
+                $(this).find('.text_wrapper').slideUp();
             } else {
                 // open
-                headers[main_id].push(header_id);
+                headers[doc_id].push(header_id);
 
-                $(this).children('svg').addClass('rot90');
-                $(this).siblings('div').slideDown();
+                $(this).find('.header_wrapper svg').addClass('rot90');
+                $(this).find('.text_wrapper').slideDown();
+
             }
             save_storage(KEY_ARTICLE, JSON.stringify(headers));
 
         })
         // get article ID
-        let main_id = $('#content').data('articleid');
-
+        let doc_id = $('#content').attr('data-docid');
+        // console.log('doc_id: ',doc_id);
         let headers = JSON.parse(load_storage(KEY_ARTICLE, '{}'));
-        if (!(headers.hasOwnProperty(main_id))) {
-            // if article not exists, let the first paragraph open
+        if (!(headers.hasOwnProperty(doc_id))) {
             // если у нас нет такой статьи в хранилище, находим первый параграф и пишем его
-            let first_paragraph = $("#content > div:first-child > div:first-child");
-            if (first_paragraph.length > 0) {
-                first_paragraph_id = $(first_paragraph[0]).data('header');
-                headers[main_id] = [first_paragraph_id]
+            let paragraphs = $("#content div[data-header]");
+            if (paragraphs.length > 0) {
+                let paragraph_id = $(paragraphs[0]).data('header');
+                headers[doc_id] = [paragraph_id]
                 save_storage(KEY_ARTICLE, JSON.stringify(headers));
             }
         }
 
         // пробегаем по всем номерам параграфов и закрываем их
-        $('[data-header]').each(function () {
+        $('[data-header]').each(function() {
             let header_id = $(this).data('header');
-            if (!headers[main_id].includes(header_id)) {
+            if (!headers[doc_id].includes(header_id)) {
 
-                $(this).children('svg').removeClass('rot90');
-                $(this).siblings('div').hide();
+                $(this).find('.header_wrapper svg').removeClass('rot90');
+                $(this).find('.text_wrapper').hide();
             }
         });
-        if ('scroll' in params) {
+        if ('scroll'in params) {
             let elem = $(`[data-header=${params.scroll}]`);
             // console.log(elem);
             $('html, body').animate({
@@ -179,13 +173,8 @@ function update_commands(params) {
 function set_theme(theme) {
     theme = parseInt(theme);
     $("link#theme").attr("href", theme ? "css/light.css" : "css/dark.css");
-    // $("img#theme").attr("src", theme ? "img/dark.png" : "img/light.png");
-
     $('#theme2').attr('xlink:href', theme ? 'svg/icons.svg#dark' : 'svg/icons.svg#light');
 
-    // $("img#logo").attr("src", theme ? "img/logolight.png" : "img/logodark.png");
-    // $("link#theme").attr("href",theme ? "css/light.css":"css/dark.css");  
-    //    <img id="theme" src="img/light.png" width="32" height="32" alt="" />
 }
 
 function do_search() {
@@ -194,44 +183,26 @@ function do_search() {
         'value': $('#search_input').val()
     });
 }
-$(document).ready(function () {
+$(document).ready(function() {
     // categories list
-    $('img#cat_menu').on('click', function () {
-        $('div#cat_list').show();
-    });
-
-    $('[data-list]').on('click', function () {
-        $('div#cat_list').hide();
-        send_data({
-            'command': COMMAND_LIST,
-            'value': $(this).data('list')
-        });
-    });
-
-    $('#search_input').on('keydown', function (ev) {
-        if (ev.keyCode == 13)
-            do_search();
-    });
-    $('#search_img').on('click', function () {
-        do_search();
-    });
-
-    $('[data-link="cat_list"]').on('click', function () {
+    $('[data-link="cat_list"]').on('click', function() {
         send_data({
             'command': COMMAND_LIST,
             'value': -1
         });
     });
 
-    // debug code
-    //send_data({ 'command': COMMAND_SEARCH, 'value': 'xz' });
-    // send_data({        'command': COMMAND_ARTICLE,        'value': 47 ,'params':[185, 598]    });
-    send_data({ 'command': COMMAND_LIST, 'value': 0 });
-    //send_data({        'command': COMMAND_LIST,        'value': -1    });
-    // show all categories with count
+    // search handler
+    $('#search_input').on('keydown', function(ev) {
+        if (ev.keyCode == 13)
+            do_search();
+    });
+    $('#search_img').on('click', function() {
+        do_search();
+    });
 
     // theme 
-    $('svg#theme').on('click', function (params) {
+    $('svg#theme').on('click', function(params) {
         let theme = load_storage(KEY_THEME, 0);
         theme = 1 - theme;
         save_storage(KEY_THEME, theme);
@@ -239,6 +210,17 @@ $(document).ready(function () {
     });
     let theme = load_storage(KEY_THEME, 0);
     set_theme(theme);
+
+    // debug code
+    //send_data({ 'command': COMMAND_SEARCH, 'value': 'xz' });
+    // send_data({        'command': COMMAND_ARTICLE,        'value': 47 ,'params':[185, 598]    });
+    // send_data({ 'command': COMMAND_LIST, 'value': 0 });
+    // send_data({ 'command': COMMAND_ARTICLE, 'value': 10 });
+    send_data({
+        'command': COMMAND_LIST,
+        'value': -1
+    });
+    // show all categories with count
 
     // do_search();
 });
