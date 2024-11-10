@@ -91,19 +91,19 @@ function update_commands(params) {
 
         $('a[data-article]').off("click");
         $('a[data-article]').on("click", function() {
-            data = {
+            let data = {
                 'command': COMMAND_ARTICLE,
                 'value': $(this).data('article')
             };
             if (params.command == COMMAND_SEARCH) {
-                data['params'] = $('#content').data('lemmas');
+                data['params'] = $('#content').attr('data-lemmas');
             }
             send_data(data);
         });
 
         $('a[data-category]').off("click");
         $('a[data-category]').on("click", function() {
-            data = {
+            let data = {
                 'command': COMMAND_LIST,
                 'value': $(this).data('category')
             };
@@ -113,9 +113,9 @@ function update_commands(params) {
 
     } else if (params.command == COMMAND_ARTICLE) {
 
-        $('[data-header]').on('click', function() {
+        $('.header_wrapper').on('click', function() {
             let doc_id = $('#content').attr('data-docid');
-            let header_id = $(this).data('header');
+            let header_id = $(this).parent('div').data('header');
             let headers = JSON.parse(load_storage(KEY_ARTICLE, '{}'));
 
             // get article ID
@@ -124,14 +124,14 @@ function update_commands(params) {
             if (opened_search > -1) {
                 // hide
                 headers[doc_id].splice(opened_search, 1);
-                $(this).find('.header_wrapper svg').removeClass('rot90');
-                $(this).find('.text_wrapper').slideUp();
+                $(this).find('svg').removeClass('rot90');
+                $(this).siblings('.text_wrapper').slideUp();
             } else {
                 // open
                 headers[doc_id].push(header_id);
-
-                $(this).find('.header_wrapper svg').addClass('rot90');
-                $(this).find('.text_wrapper').slideDown();
+//let x1 =  $(this).find('svg');                let x2 =  $(this).siblings('.text_wrapper');
+                $(this).find('svg').addClass('rot90');
+                $(this).siblings('.text_wrapper').slideDown();
 
             }
             save_storage(KEY_ARTICLE, JSON.stringify(headers));
@@ -212,15 +212,13 @@ $(document).ready(function() {
     set_theme(theme);
 
     // debug code
-    //send_data({ 'command': COMMAND_SEARCH, 'value': 'xz' });
+    send_data({ 'command': COMMAND_SEARCH, 'value': 'терапия' });
     // send_data({        'command': COMMAND_ARTICLE,        'value': 47 ,'params':[185, 598]    });
     // send_data({ 'command': COMMAND_LIST, 'value': 0 });
-    // send_data({ 'command': COMMAND_ARTICLE, 'value': 10 });
-    send_data({
-        'command': COMMAND_LIST,
-        'value': -1
-    });
+    // send_data({ 'command': COMMAND_ARTICLE, 'value': 113 });
+    
     // show all categories with count
 
-    // do_search();
+    
+    // send_data({        'command': COMMAND_LIST,        'value': -1    });
 });

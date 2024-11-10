@@ -12,17 +12,11 @@ ARTICLE_DIR = "art5"
 
 
 def make_dicts(cursor, row):
-    return dict(
-        (cursor.description[idx][0], value) for idx, value in enumerate(row)
-    )
+    return dict((cursor.description[idx][0], value) for idx, value in enumerate(row))
 
 
 def put_articles(path: str, conn):
-    file_names = [
-        y
-        for x in os.walk(path)
-        for y in glob(os.path.join(x[0], "*.txt"))
-    ]
+    file_names = [y for x in os.walk(path) for y in glob(os.path.join(x[0], "*.txt"))]
     # file_names = [f for f in os.listdir(path)]
     print(f"Найдено файлов: {len(file_names)}")
 
@@ -44,14 +38,13 @@ def put_articles(path: str, conn):
 
             # id = medicine_id + 1
 
-            with open(
-                os.path.join(path, filename), "r", encoding="UTF-8"
-            ) as article_file:
+            with open(os.path.join(path, filename), "r", encoding="UTF-8") as article_file:
                 article_text = article_file.read()
 
             print(f"[id:{medicine_id}] {filename}...", end="")
 
             headers_count, para_count = 0, 0
+            category_collect = []
 
             matches = re.finditer(
                 r"<(?P<tag>p|h1|q)>(?P<value>.*?)<\/(?P=tag)>",
@@ -62,12 +55,9 @@ def put_articles(path: str, conn):
                 tag = match.group(1).upper()
                 text = match.group(2)
                 if tag == "Q":
-                    text = int(text)
-                    conn.execute(
-                        "INSERT into medicine_categories (medicine_id,category_id) VALUES (?,?)",
-                        (medicine_id, text),
-                    )
-                    conn.commit()
+                    cat = int(text)
+                    category_collect.append(cat)
+
                 if tag == "H1":
                     id += 1
                     conn.execute(
@@ -89,6 +79,17 @@ def put_articles(path: str, conn):
                     para_count += 1
                 else:
                     continue
+
+            # если категорий не было - автоматически в другие
+            if len(category_collect) == 0:
+                category_collect = [7]
+            for cat in category_collect:
+                conn.execute(
+                    "INSERT into medicine_categories (medicine_id,category_id) VALUES (?,?)",
+                    (medicine_id, cat),
+                )
+            conn.commit()
+
             print(f"Заголовков: {headers_count}, параграфов:{para_count}")
             id += 1
     finally:
@@ -103,14 +104,10 @@ def make_index(conn):
         lemmas = lemme.tokenize_string(line)
         # проверяем, есть ли слово в базе
         for l in lemmas:
-            cur = conn.execute(
-                "select id from lemmas where lemma = ?;", (l["morphem"],)
-            )
+            cur = conn.execute("select id from lemmas where lemma = ?;", (l["morphem"],))
             qres = cur.fetchall()
             if len(qres) == 0:  # добавляем слово
-                cur = conn.execute(
-                    "select ifnull(max(id),-1) max_id from lemmas;"
-                )
+                cur = conn.execute("select ifnull(max(id),-1) max_id from lemmas;")
                 qres = cur.fetchall()
                 lemma_id = qres[0]["max_id"] + 1
                 conn.execute(

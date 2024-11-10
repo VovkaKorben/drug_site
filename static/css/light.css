@@ -15,13 +15,17 @@ a:hover {
   color: #007bff;
 }
 
-span.search,
+
 #header_wrapper,
 input[ type="text"],
 div.selectable:hover {
   background-color: #c7c7c7;
 }
 
+
+span.search {
+  background-color: #aaa;
+}
 
 
 

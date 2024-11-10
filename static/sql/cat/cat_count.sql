@@ -6,7 +6,7 @@ FROM
 	(
 			SELECT mc.category_id AS cid,COUNT(mc.category_id) AS ccnt FROM medicine_categories mc GROUP BY mc.category_id
 		UNION
-			SELECT 0,COUNT(DISTINCT mc.category_id) FROM medicine_categories mc
+			SELECT 0,COUNT(DISTINCT mc.medicine_id) FROM medicine_categories mc
 	)
 AS cval
 

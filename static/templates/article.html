@@ -1,16 +1,19 @@
 <div class="doc_name">{{doc}}</div>
 {% for header_id in tree %}
+
 <div data-header={{header_id}}>
     <div class="header_wrapper flex_left_middle svghover">
         <svg class="svgimg svgbtn  rot90">
             <use xlink:href="svg/icons.svg#chevron"></use>
         </svg>
         <h1>{{texts[header_id]|safe}}</h1>
+        [{{header_id}}]
     </div>
 
     <div class="text_wrapper">
+        
         {% for paragraph_id in tree[header_id] %}
-        <p>{{texts[paragraph_id]|safe}}</p>
+        <p>[{{paragraph_id}}] &nbsp;{{texts[paragraph_id]|safe}}</p>
         {% endfor %}
     </div>
 </div>
