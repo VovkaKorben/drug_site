@@ -122,9 +122,10 @@ def cmd_article(data: dict, input_data) -> dict:
         tree[p["parent"]].append(p["id"])
 
     if "params" in input_data:  # находим все использования лемм
+        used_lemmas = json.loads(input_data["params"])
         used_lemmas = internal.read_db(
             sql_filename="article_work/get_used_lemmas.sql",
-            params={"articles_list": list(texts), "lemmas_list": input_data["params"]},
+            params={"articles_list": list(texts), "lemmas_list": used_lemmas},
         )
         used_articles = set(item["article_id"] for item in used_lemmas)
         for id in used_articles:

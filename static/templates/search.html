@@ -13,7 +13,7 @@
 
         {% for elem in line %}
         <a data-article="{{elem.id}}" href="#">[{{elem.id}}] {{elem.txt|safe}}</a>
-        {% if not loop.last %}&nbsp;>&nbsp;{% endif %}
+        {% if not loop.last %}&nbsp;&#x2BC8;&nbsp;{% endif %}
 
         {% endfor %}
 

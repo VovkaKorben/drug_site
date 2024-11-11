@@ -4,6 +4,7 @@ from internal import flask_db_conn
 import pymorphy3
 from internal import read_db
 import copy
+import json
 
 MAX_RESULTS = None  # или число для ограничения
 HTML_TAGS = ('<span class="search">', "</span>")
@@ -12,7 +13,13 @@ WORDS_FRAMING = 12
 
 OPEN_TAG = 0
 CLOSE_TAG = 1
+MARKER_SEPARATOR = 0
+MARKER_TAG = 1
+MARKER_CHARACTER = 2
+COLLECT_TAG = -1
+COLLECT_NONE = None
 morph = pymorphy3.MorphAnalyzer()
+
 
 blacklist_words = [
     "БЕЗ",
@@ -20,8 +27,10 @@ blacklist_words = [
     "ГДЕ",
     "ДЛЯ",
     "ДО",
+    "ДР",
     "ЕСТЬ",
     "ЖЕ",
+    "ЗА",
     "ИЗ",
     "ИЛИ",
     "КАК",
@@ -53,7 +62,10 @@ blacklist_words = [
     "ВСЕ",
     "ВСЁ",
     "САМ",
-    "ЧЕЙ",
+    "ЭТОТ",
+    "ЭТА",
+    "ЭТО",
+    "ЭТИ",
 ]
 
 
@@ -75,45 +87,67 @@ def sqlite_trace_callback(value):
 
 def tokenize_string(line: str) -> dict:
 
-    def add_word(start: int, end: int, word_index: int):
-
+    def add_word(collect: list, line: str, start: int, end: int):
         word = line[start:end]
         if word not in blacklist_words:
             morphem = morph.parse(word)[0].normal_form.upper()
             if morphem not in blacklist_words and len(morphem) > 1 and len(word) > 1:
-                r.append(
+                collect.append(
                     {
-                        "word": line[start:pos],
+                        "word": word,
                         "morphem": morphem,
                         "start": start,
                         "len": end - start,
-                        "word_index": word_index,
+                        # "word_index": word_index,
                     }
                 )
-                word_index += 1
-        return word_index
+                # word_index += 1
+        return collect
 
     allowed_chars = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЫЪЭЮЯ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ-_"
     line = line.upper()
     text_len = len(line)
     pos, word_index = 0, 0
-    start = None
+    # tag_opened = False
+    # -1 tag in progress
+    # >=0 collect in progress
+    # None = wait for marker
+    start = COLLECT_NONE
 
-    r = []
+    collect = []
     while pos < text_len:
-        if line[pos] in allowed_chars:
-            if start is None:
-                start = pos
+        if start == COLLECT_TAG:  # было начало тега, только ждём конец тега
+            if line[pos] == ">":
+                start = COLLECT_NONE
         else:
-            if start is not None:
-                word_index = add_word(start, pos, word_index)
-                start = None
+            # находим что за символ встретился
+            marker_found = MARKER_SEPARATOR
+            if line[pos] == "<":
+                marker_found = MARKER_TAG
+            elif line[pos] in allowed_chars:
+                marker_found = MARKER_CHARACTER
 
+            if start is COLLECT_NONE:
+                if marker_found == MARKER_TAG:  # встретили начало тега
+                    start = COLLECT_TAG
+                elif marker_found == MARKER_CHARACTER:  # встретили разрешенный символ
+                    start = pos
+
+            elif marker_found != MARKER_CHARACTER:  # встретили либо начало тега, либо неразрешенный символ
+                collect = add_word(collect, line, start, pos)
+                if marker_found == MARKER_SEPARATOR:  # неразрешенный символ
+                    start = COLLECT_NONE
+                elif marker_found == MARKER_TAG:  # начало тега
+                    start = COLLECT_TAG
         pos += 1
+
+
     # check if line ends with word
-    if start is not None:
-        add_word(start, text_len, word_index)
-    return r
+    if start is not COLLECT_NONE:
+        collect = add_word(collect, line, start, text_len)
+        # add_word(start, text_len, word_index)
+    # print(json.dumps(r, indent=4, ensure_ascii=False))
+    return collect
 
 
 def make_dicts(cursor, row):
@@ -217,8 +251,8 @@ def shortenize(id, params, texts, conn):
 
     # срезаем нашу строку
     char_start = db_word_positions[0]["start"]  # lemmas_usage[start_word_index][0]
-    char_end = db_word_positions[1]["start"] + db_word_positions[0]["len"]  # lemmas_usage[end_word_index][0] + lemmas_usage[end_word_index][1]
-    result = texts["txt"][char_start : char_end + 1]
+    char_end = db_word_positions[1]["start"] + db_word_positions[1]["len"]  # lemmas_usage[end_word_index][0] + lemmas_usage[end_word_index][1]
+    result = texts["txt"][char_start : char_end]
 
     # все токены из всех комбинаций проверяем на вхождение в диапазон, входящие добавляем в массив и сортируем по word index
     # потом этот отсортированный массив передаем как markup
@@ -515,7 +549,14 @@ def do_search(needle: str, conn=None):
             if len(branch) > 1:  # for paragraph
 
                 # укороченное содержание
+
+
+
                 shortened = shortenize(branch[1], s_res, articles_text, conn)
+
+                # with open("test3.txt", "a",encoding='utf-8') as f:
+                #     f.write(f"{shortened}\n\n\n")
+
                 line.append(
                     {
                         "txt": shortened,
@@ -570,3 +611,7 @@ def main():
 if __name__ == "__main__":
     main()
 """
+
+
+# l = "\n\n<UL>\n<LI>СЕКС</LI>\n<LI>НАРК</LI>\n<LI>АЛКО</LI>\n</UL>\n\n"
+# a = tokenize_string(l)

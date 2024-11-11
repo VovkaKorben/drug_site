@@ -212,7 +212,7 @@ $(document).ready(function() {
     set_theme(theme);
 
     // debug code
-    send_data({ 'command': COMMAND_SEARCH, 'value': 'терапия' });
+    send_data({ 'command': COMMAND_SEARCH, 'value': 'алкоголь' });
     // send_data({        'command': COMMAND_ARTICLE,        'value': 47 ,'params':[185, 598]    });
     // send_data({ 'command': COMMAND_LIST, 'value': 0 });
     // send_data({ 'command': COMMAND_ARTICLE, 'value': 113 });
